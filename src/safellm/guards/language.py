@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from ..context import Context
 from ..decisions import Decision
@@ -130,6 +130,5 @@ class LanguageGuard(BaseGuard):
                     )
 
         # Sort by confidence descending
-        from typing import cast
         results.sort(key=lambda x: cast(float, x.get("confidence", 0.0)), reverse=True)
         return results
