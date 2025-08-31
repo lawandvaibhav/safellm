@@ -50,11 +50,11 @@ class SimilarityGuard(BaseGuard):
             text = data
 
         # Generate hash for exact duplicate detection
-        content_hash = hashlib.md5(text.encode()).hexdigest()
+        content_hash = hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
 
         # Normalize text for fuzzy matching
         normalized = self._normalize_text(text)
-        normalized_hash = hashlib.md5(normalized.encode()).hexdigest()
+        normalized_hash = hashlib.md5(normalized.encode(), usedforsecurity=False).hexdigest()
 
         evidence = {
             "content_hash": content_hash,
