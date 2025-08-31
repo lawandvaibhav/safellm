@@ -51,6 +51,8 @@ dev = [
     # Type stubs for mypy
     "types-jsonschema",
     "types-bleach",
+    # For Ollama integration testing
+    "aiohttp>=3.8",
 ]
 
 [project.urls]
