@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta
-from typing import Any, Callable, Literal
+from datetime import datetime
+from typing import Any, Literal
 
 from ..context import Context
 from ..decisions import Decision
@@ -21,7 +21,7 @@ class BusinessRulesGuard(BaseGuard):
         require_all: bool = False,
     ) -> None:
         """Initialize the business rules guard.
-        
+
         Args:
             rules: List of business rule definitions
             action: What to do when rules are violated
@@ -40,7 +40,7 @@ class BusinessRulesGuard(BaseGuard):
         rule_results = []
         passed_rules = []
         failed_rules = []
-        
+
         for rule in self.rules:
             try:
                 result = self._evaluate_rule(rule, data, ctx)
@@ -52,12 +52,12 @@ class BusinessRulesGuard(BaseGuard):
                     "message": result.get("message"),
                     "details": result.get("details", {}),
                 })
-                
+
                 if result["passed"]:
                     passed_rules.append(rule["id"])
                 else:
                     failed_rules.append(rule["id"])
-                    
+
             except Exception as e:
                 rule_results.append({
                     "rule_id": rule["id"],
@@ -89,10 +89,10 @@ class BusinessRulesGuard(BaseGuard):
             failed_rule_names = [r["rule_name"] for r in rule_results if not r["passed"]]
             reasons = [f"Business rule violation: {len(failed_rules)} rule(s) failed"]
             reasons.extend([f"Failed: {name}" for name in failed_rule_names[:3]])  # Limit to first 3
-            
+
             if len(failed_rule_names) > 3:
                 reasons.append(f"... and {len(failed_rule_names) - 3} more")
-            
+
             if self.action == "block":
                 return Decision.deny(
                     data,
@@ -136,15 +136,15 @@ class BusinessRulesGuard(BaseGuard):
     def _parse_rules(self, rules: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Parse and validate rule definitions."""
         parsed_rules = []
-        
+
         for i, rule in enumerate(rules):
             if not isinstance(rule, dict):
                 raise ValueError(f"Rule {i} must be a dictionary")
-            
+
             rule_id = rule.get("id", f"rule_{i}")
             rule_name = rule.get("name", rule_id)
             rule_type = rule.get("type", "custom")
-            
+
             parsed_rule = {
                 "id": rule_id,
                 "name": rule_name,
@@ -152,7 +152,7 @@ class BusinessRulesGuard(BaseGuard):
                 "description": rule.get("description", ""),
                 "config": rule.get("config", {}),
             }
-            
+
             # Validate rule type and configuration
             if rule_type == "range":
                 self._validate_range_rule(parsed_rule)
@@ -168,9 +168,9 @@ class BusinessRulesGuard(BaseGuard):
                 self._validate_custom_rule(parsed_rule, rule)
             else:
                 raise ValueError(f"Unknown rule type: {rule_type}")
-            
+
             parsed_rules.append(parsed_rule)
-        
+
         return parsed_rules
 
     def _validate_range_rule(self, rule: dict[str, Any]) -> None:
@@ -184,11 +184,11 @@ class BusinessRulesGuard(BaseGuard):
         config = rule["config"]
         if "pattern" not in config:
             raise ValueError(f"Pattern rule '{rule['id']}' must specify pattern")
-        
+
         try:
             re.compile(config["pattern"])
         except re.error as e:
-            raise ValueError(f"Invalid regex pattern in rule '{rule['id']}': {e}")
+            raise ValueError(f"Invalid regex pattern in rule '{rule['id']}': {e}") from e
 
     def _validate_length_rule(self, rule: dict[str, Any]) -> None:
         """Validate length rule configuration."""
@@ -212,17 +212,17 @@ class BusinessRulesGuard(BaseGuard):
         """Validate custom rule configuration."""
         if "validator" not in original_rule:
             raise ValueError(f"Custom rule '{rule['id']}' must specify validator function")
-        
+
         if not callable(original_rule["validator"]):
             raise ValueError(f"Custom rule '{rule['id']}' validator must be callable")
-        
+
         rule["validator"] = original_rule["validator"]
 
     def _evaluate_rule(self, rule: dict[str, Any], data: Any, ctx: Context) -> dict[str, Any]:
         """Evaluate a single business rule."""
         rule_type = rule["type"]
         config = rule["config"]
-        
+
         if rule_type == "range":
             return self._evaluate_range_rule(config, data)
         elif rule_type == "pattern":
@@ -244,10 +244,10 @@ class BusinessRulesGuard(BaseGuard):
             value = float(data) if isinstance(data, (int, float, str)) else None
             if value is None:
                 return {"passed": False, "message": "Value cannot be converted to number"}
-            
+
             min_val = config.get("min")
             max_val = config.get("max")
-            
+
             if min_val is not None and value < min_val:
                 return {
                     "passed": False,
@@ -255,7 +255,7 @@ class BusinessRulesGuard(BaseGuard):
                     "message": f"Value {value} is below minimum {min_val}",
                     "details": {"min_value": min_val, "actual_value": value},
                 }
-            
+
             if max_val is not None and value > max_val:
                 return {
                     "passed": False,
@@ -263,14 +263,14 @@ class BusinessRulesGuard(BaseGuard):
                     "message": f"Value {value} exceeds maximum {max_val}",
                     "details": {"max_value": max_val, "actual_value": value},
                 }
-            
+
             return {
                 "passed": True,
                 "value": value,
                 "message": f"Value {value} is within range",
                 "details": {"min_value": min_val, "max_value": max_val, "actual_value": value},
             }
-            
+
         except (ValueError, TypeError) as e:
             return {"passed": False, "message": f"Range evaluation error: {e}"}
 
@@ -279,7 +279,7 @@ class BusinessRulesGuard(BaseGuard):
         text = str(data)
         pattern = config["pattern"]
         match_required = config.get("match_required", True)
-        
+
         try:
             match = re.search(pattern, text)
             if match_required:
@@ -288,26 +288,26 @@ class BusinessRulesGuard(BaseGuard):
             else:
                 passed = not bool(match)
                 message = "Pattern not found" if passed else "Forbidden pattern found"
-            
+
             details = {
                 "pattern": pattern,
                 "match_required": match_required,
                 "text_length": len(text),
             }
-            
+
             if match:
                 details.update({
                     "match_text": match.group(),
                     "match_start": match.start(),
                     "match_end": match.end(),
                 })
-            
+
             return {
                 "passed": passed,
                 "message": message,
                 "details": details,
             }
-            
+
         except re.error as e:
             return {"passed": False, "message": f"Pattern error: {e}"}
 
@@ -315,24 +315,24 @@ class BusinessRulesGuard(BaseGuard):
         """Evaluate length rule."""
         text = str(data)
         length = len(text)
-        
+
         min_length = config.get("min_length")
         max_length = config.get("max_length")
-        
+
         if min_length is not None and length < min_length:
             return {
                 "passed": False,
                 "message": f"Length {length} is below minimum {min_length}",
                 "details": {"min_length": min_length, "actual_length": length},
             }
-        
+
         if max_length is not None and length > max_length:
             return {
                 "passed": False,
                 "message": f"Length {length} exceeds maximum {max_length}",
                 "details": {"max_length": max_length, "actual_length": length},
             }
-        
+
         return {
             "passed": True,
             "message": f"Length {length} is within bounds",
@@ -342,18 +342,18 @@ class BusinessRulesGuard(BaseGuard):
     def _evaluate_time_window_rule(self, config: dict[str, Any], data: Any, ctx: Context) -> dict[str, Any]:
         """Evaluate time window rule."""
         current_time = ctx.timestamp or datetime.utcnow()
-        
+
         start_time = config["start_time"]
         end_time = config["end_time"]
-        
+
         # Parse time strings if needed
         if isinstance(start_time, str):
             start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
         if isinstance(end_time, str):
             end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
-        
+
         in_window = start_time <= current_time <= end_time
-        
+
         return {
             "passed": in_window,
             "message": f"Current time {'is' if in_window else 'is not'} within allowed window",
@@ -368,23 +368,23 @@ class BusinessRulesGuard(BaseGuard):
     def _evaluate_value_list_rule(self, config: dict[str, Any], data: Any) -> dict[str, Any]:
         """Evaluate value list rule."""
         value = str(data)
-        
+
         allowed_values = config.get("allowed_values")
         forbidden_values = config.get("forbidden_values")
         case_sensitive = config.get("case_sensitive", True)
-        
+
         if not case_sensitive:
             value = value.lower()
             if allowed_values:
                 allowed_values = [v.lower() for v in allowed_values]
             if forbidden_values:
                 forbidden_values = [v.lower() for v in forbidden_values]
-        
+
         details = {
             "value": value,
             "case_sensitive": case_sensitive,
         }
-        
+
         if allowed_values is not None:
             passed = value in allowed_values
             details["allowed_values"] = allowed_values
@@ -396,7 +396,7 @@ class BusinessRulesGuard(BaseGuard):
         else:
             passed = True
             message = "No value restrictions"
-        
+
         return {
             "passed": passed,
             "message": message,
@@ -408,7 +408,7 @@ class BusinessRulesGuard(BaseGuard):
         try:
             validator = rule["validator"]
             result = validator(data, ctx, rule["config"])
-            
+
             # Ensure result is in expected format
             if isinstance(result, bool):
                 return {
@@ -426,7 +426,7 @@ class BusinessRulesGuard(BaseGuard):
                     "passed": False,
                     "message": f"Invalid custom rule result type: {type(result)}",
                 }
-                
+
         except Exception as e:
             return {
                 "passed": False,
@@ -439,14 +439,14 @@ class BusinessRulesGuard(BaseGuard):
         # This is a placeholder for transformation logic
         # In practice, you would implement specific transformations
         # based on failed rules and their configurations
-        
+
         transformed_data = data
-        
+
         for result in rule_results:
             if not result["passed"] and "transformation" in result:
                 # Apply transformation if specified
                 transformation = result["transformation"]
                 if callable(transformation):
                     transformed_data = transformation(transformed_data)
-        
+
         return transformed_data

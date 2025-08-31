@@ -37,7 +37,7 @@ class LanguageGuard(BaseGuard):
         min_confidence: float = 0.3,
     ) -> None:
         """Initialize the language guard.
-        
+
         Args:
             allowed_languages: List of allowed language codes (if None, all are allowed)
             blocked_languages: List of blocked language codes
@@ -62,7 +62,7 @@ class LanguageGuard(BaseGuard):
 
         # Detect languages
         detected_languages = self._detect_languages(text)
-        
+
         evidence = {
             "detected_languages": detected_languages,
             "text_length": len(text),
@@ -73,7 +73,7 @@ class LanguageGuard(BaseGuard):
         for lang_info in detected_languages:
             lang = lang_info["language"]
             confidence = lang_info["confidence"]
-            
+
             if confidence >= self.min_confidence:
                 if lang in self.blocked_languages:
                     blocked_detected.append(lang)
@@ -83,7 +83,7 @@ class LanguageGuard(BaseGuard):
         if blocked_detected:
             reasons = [f"Detected blocked/disallowed language(s): {', '.join(blocked_detected)}"]
             evidence["blocked_languages"] = blocked_detected
-            
+
             if self.action == "block":
                 return Decision.deny(
                     data,
@@ -111,14 +111,14 @@ class LanguageGuard(BaseGuard):
 
         results = []
         text_length = len(text)
-        
+
         for language, pattern in self.LANGUAGE_PATTERNS.items():
             matches = pattern.findall(text)
             if matches:
                 # Calculate a simple confidence score
                 match_chars = sum(len(match) for match in matches)
                 confidence = min(1.0, match_chars / max(1, text_length * 0.1))
-                
+
                 if confidence > 0.1:  # Only include if there's some evidence
                     results.append({
                         "language": language,

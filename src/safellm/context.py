@@ -8,7 +8,7 @@ from typing import Any
 
 class Context:
     """Context object that holds metadata for validation requests.
-    
+
     This object is passed between guards and can hold request-specific
     information like model type, user role, purpose, trace IDs, and random seeds.
     """
@@ -25,7 +25,7 @@ class Context:
         metadata: dict[str, Any] | None = None,
     ) -> None:
         """Initialize context.
-        
+
         Args:
             audit_id: Unique identifier for this validation request
             model: Name/identifier of the LLM model being used

@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Pattern
-
 
 # Email patterns
 EMAIL_PATTERN = re.compile(
@@ -81,14 +79,14 @@ def luhn_check(card_number: str) -> bool:
     """Validate credit card number using Luhn algorithm."""
     # Remove non-digit characters
     digits = [int(x) for x in card_number if x.isdigit()]
-    
+
     if len(digits) < 13 or len(digits) > 19:
         return False
-    
+
     # Apply Luhn algorithm
     checksum = 0
     is_even = False
-    
+
     for digit in reversed(digits):
         if is_even:
             digit *= 2
@@ -96,7 +94,7 @@ def luhn_check(card_number: str) -> bool:
                 digit -= 9
         checksum += digit
         is_even = not is_even
-    
+
     return checksum % 10 == 0
 
 
@@ -104,7 +102,7 @@ def mask_text(text: str, start: int = 2, end: int = 2, mask_char: str = "*") -> 
     """Mask a string, keeping start and end characters visible."""
     if len(text) <= start + end:
         return mask_char * len(text)
-    
+
     return (
         text[:start] +
         mask_char * (len(text) - start - end) +
@@ -116,15 +114,15 @@ def mask_email(email: str) -> str:
     """Mask an email address."""
     if "@" not in email:
         return mask_text(email)
-    
+
     local, domain = email.split("@", 1)
     if "." not in domain:
         return f"{mask_text(local, 1, 0)}@{mask_text(domain)}"
-    
+
     domain_parts = domain.split(".")
     domain_name = domain_parts[0]
     domain_ext = ".".join(domain_parts[1:])
-    
+
     return f"{mask_text(local, 1, 0)}@{mask_text(domain_name, 0, 0)}.{domain_ext}"
 
 
@@ -132,7 +130,7 @@ def mask_phone(phone: str) -> str:
     """Mask a phone number."""
     # Extract just digits
     digits = ''.join(c for c in phone if c.isdigit())
-    
+
     if len(digits) >= 10:
         # Show country code and last 2-3 digits
         if len(digits) > 10:
@@ -147,7 +145,7 @@ def mask_credit_card(card: str) -> str:
     """Mask a credit card number."""
     # Extract just digits
     digits = ''.join(c for c in card if c.isdigit())
-    
+
     if len(digits) >= 13:
         return f"**** **** **** {digits[-4:]}"
     else:
@@ -195,9 +193,9 @@ def contains_profanity(text: str) -> bool:
     normalized = normalize_leet_speak(text)
     # Remove punctuation and spaces for detection
     cleaned = ''.join(c for c in normalized if c.isalnum())
-    
+
     for word in BASIC_PROFANITY:
         if word in cleaned:
             return True
-    
+
     return False

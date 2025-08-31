@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..context import Context
 from ..decisions import Decision
@@ -11,7 +11,6 @@ from ..guard import BaseGuard
 
 if TYPE_CHECKING:
     try:
-        import jsonschema
         from pydantic import BaseModel
     except ImportError:
         pass
@@ -69,11 +68,11 @@ class JsonSchemaGuard(SchemaGuard):
 
         # Validate against schema
         errors = list(self.validator.iter_errors(parsed_data))
-        
+
         if errors:
             reasons = []
             error_details = []
-            
+
             for error in errors:
                 path = " -> ".join(str(p) for p in error.absolute_path) if error.absolute_path else "root"
                 reasons.append(f"Schema validation failed at {path}: {error.message}")
@@ -150,7 +149,7 @@ class PydanticSchemaGuard(SchemaGuard):
         # Validate with Pydantic
         try:
             validated_instance = self.model.model_validate(parsed_data)
-            
+
             # Return the validated data as a dict
             return Decision.allow(
                 validated_instance.model_dump(),
@@ -160,11 +159,11 @@ class PydanticSchemaGuard(SchemaGuard):
                     "model_name": self.model.__name__,
                 },
             )
-            
+
         except ValidationError as e:
             reasons = []
             error_details = []
-            
+
             for error in e.errors():
                 path = " -> ".join(str(p) for p in error["loc"]) if error["loc"] else "root"
                 reasons.append(f"Validation failed at {path}: {error['msg']}")

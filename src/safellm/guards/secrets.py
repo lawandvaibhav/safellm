@@ -24,7 +24,7 @@ class SecretMaskGuard(BaseGuard):
         custom_patterns: list[tuple[str, str]] | None = None,  # (name, pattern)
     ) -> None:
         """Initialize the secrets masking guard.
-        
+
         Args:
             vendors: List of vendor names to detect (None = all supported)
             custom_patterns: Additional patterns as (name, regex_pattern) tuples
@@ -82,7 +82,7 @@ class SecretMaskGuard(BaseGuard):
         evidence = {
             "detections": detections,
             "detection_count": len(detections),
-            "secret_types": list(set(d["type"] for d in detections)),
+            "secret_types": list({d["type"] for d in detections}),
         }
 
         if detections:
@@ -108,7 +108,7 @@ class SecretMaskGuard(BaseGuard):
         result = text
 
         patterns_to_check = []
-        
+
         if self.vendors is None:
             # Check all patterns
             patterns_to_check = API_KEY_PATTERNS
@@ -122,10 +122,10 @@ class SecretMaskGuard(BaseGuard):
             for match in pattern.finditer(text):
                 key = match.group()
                 start, end = match.span()
-                
+
                 # Determine the vendor type
                 vendor_type = self._identify_vendor(key)
-                
+
                 detections.append({
                     "type": "api_key",
                     "vendor": vendor_type,
@@ -147,7 +147,7 @@ class SecretMaskGuard(BaseGuard):
         for match in JWT_PATTERN.finditer(text):
             token = match.group()
             start, end = match.span()
-            
+
             detections.append({
                 "type": "jwt_token",
                 "original": token,
@@ -161,7 +161,7 @@ class SecretMaskGuard(BaseGuard):
                 masked_token = f"{parts[0]}.{'*' * 20}.{'*' * 20}"
             else:
                 masked_token = mask_api_key(token)
-            
+
             result = result.replace(token, masked_token, 1)
 
         return result, detections
@@ -175,7 +175,7 @@ class SecretMaskGuard(BaseGuard):
             full_match = match.group()
             password = match.group(1) if match.groups() else ""
             start, end = match.span()
-            
+
             if password and len(password) > 2:  # Avoid false positives
                 detections.append({
                     "type": "password",
@@ -202,7 +202,7 @@ class SecretMaskGuard(BaseGuard):
         for match in pattern.finditer(text):
             secret = match.group()
             start, end = match.span()
-            
+
             detections.append({
                 "type": secret_type,
                 "original": secret,

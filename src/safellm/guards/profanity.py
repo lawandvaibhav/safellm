@@ -20,7 +20,7 @@ class ProfanityGuard(BaseGuard):
         allowlist: set[str] | None = None,
     ) -> None:
         """Initialize the profanity guard.
-        
+
         Args:
             action: How to handle profanity - 'block', 'mask', or 'flag'
             custom_words: Additional words to consider profanity
@@ -45,7 +45,7 @@ class ProfanityGuard(BaseGuard):
 
         # Check for profanity
         detections = self._detect_profanity(text)
-        
+
         evidence = {
             "detections": detections,
             "detection_count": len(detections),
@@ -53,7 +53,7 @@ class ProfanityGuard(BaseGuard):
 
         if detections:
             reasons = [f"Detected {len(detections)} profanity instance(s)"]
-            
+
             if self.action == "block":
                 return Decision.deny(
                     original_data,
@@ -87,23 +87,23 @@ class ProfanityGuard(BaseGuard):
     def _detect_profanity(self, text: str) -> list[dict[str, Any]]:
         """Detect profanity in text and return detection details."""
         detections = []
-        
+
         # Normalize text for detection
         normalized = normalize_leet_speak(text.lower())
         words = normalized.split()
-        
+
         # Check each word
         for i, word in enumerate(words):
             # Remove punctuation for checking
             clean_word = ''.join(c for c in word if c.isalnum())
-            
+
             if self._is_profanity(clean_word):
                 # Find the original word position in the text
                 original_words = text.split()
                 if i < len(original_words):
                     original_word = original_words[i]
                     start_pos = text.find(original_word)
-                    
+
                     detections.append({
                         "word": original_word,
                         "normalized": clean_word,
@@ -111,7 +111,7 @@ class ProfanityGuard(BaseGuard):
                         "start": start_pos,
                         "end": start_pos + len(original_word),
                     })
-        
+
         return detections
 
     def _is_profanity(self, word: str) -> bool:
@@ -119,34 +119,34 @@ class ProfanityGuard(BaseGuard):
         # Check allowlist first
         if word in self.allowlist:
             return False
-        
+
         # Check custom words
         if word in self.custom_words:
             return True
-        
+
         # Use the basic profanity detection from patterns
         return contains_profanity(word)
 
     def _mask_profanity(self, text: str, detections: list[dict[str, Any]]) -> str:
         """Mask profanity in text based on detections."""
         result = text
-        
+
         # Sort detections by start position in reverse order
         # so we can replace from end to beginning without affecting positions
         sorted_detections = sorted(detections, key=lambda x: x["start"], reverse=True)
-        
+
         for detection in sorted_detections:
             word = detection["word"]
             start = detection["start"]
             end = detection["end"]
-            
+
             # Create mask (keep first letter, mask the rest)
             if len(word) > 1:
                 masked = word[0] + "*" * (len(word) - 1)
             else:
                 masked = "*"
-            
+
             # Replace in the result
             result = result[:start] + masked + result[end:]
-        
+
         return result

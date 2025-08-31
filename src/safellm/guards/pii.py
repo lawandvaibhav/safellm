@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
-from typing import Any, Literal, Pattern
+from re import Pattern
+from typing import Any, Literal
 
 from ..context import Context
 from ..decisions import Decision
@@ -45,7 +45,7 @@ class PiiRedactionGuard(BaseGuard):
         custom_patterns: list[Pattern[str]] | None = None,
     ) -> None:
         """Initialize the PII redaction guard.
-        
+
         Args:
             mode: How to handle detected PII - 'mask' or 'remove'
             targets: List of PII types to detect (default: all supported types)
@@ -120,7 +120,7 @@ class PiiRedactionGuard(BaseGuard):
         evidence = {
             "detections": detections,
             "detection_count": len(detections),
-            "pii_types": list(set(d["type"] for d in detections)),
+            "pii_types": list({d["type"] for d in detections}),
         }
 
         if detections:
@@ -158,7 +158,7 @@ class PiiRedactionGuard(BaseGuard):
         for match in EMAIL_PATTERN.finditer(text):
             email = match.group()
             start, end = match.span()
-            
+
             detections.append({
                 "type": "email",
                 "original": email,
@@ -170,7 +170,7 @@ class PiiRedactionGuard(BaseGuard):
                 replacement = mask_email(email)
             else:  # remove
                 replacement = "[EMAIL_REMOVED]"
-            
+
             result = result.replace(email, replacement, 1)
 
         return result, detections
@@ -184,7 +184,7 @@ class PiiRedactionGuard(BaseGuard):
             for match in pattern.finditer(text):
                 phone = match.group()
                 start, end = match.span()
-                
+
                 detections.append({
                     "type": "phone",
                     "original": phone,
@@ -196,7 +196,7 @@ class PiiRedactionGuard(BaseGuard):
                     replacement = mask_phone(phone)
                 else:  # remove
                     replacement = "[PHONE_REMOVED]"
-                
+
                 result = result.replace(phone, replacement, 1)
 
         return result, detections
@@ -210,7 +210,7 @@ class PiiRedactionGuard(BaseGuard):
             for match in pattern.finditer(text):
                 card = match.group()
                 start, end = match.span()
-                
+
                 # Validate with Luhn algorithm
                 if luhn_check(card):
                     detections.append({
@@ -224,7 +224,7 @@ class PiiRedactionGuard(BaseGuard):
                         replacement = mask_credit_card(card)
                     else:  # remove
                         replacement = "[CARD_REMOVED]"
-                    
+
                     result = result.replace(card, replacement, 1)
 
         return result, detections
@@ -237,7 +237,7 @@ class PiiRedactionGuard(BaseGuard):
         for match in SSN_PATTERN.finditer(text):
             ssn = match.group()
             start, end = match.span()
-            
+
             detections.append({
                 "type": "ssn",
                 "original": ssn,
@@ -249,7 +249,7 @@ class PiiRedactionGuard(BaseGuard):
                 replacement = mask_text(ssn, 3, 2)
             else:  # remove
                 replacement = "[SSN_REMOVED]"
-            
+
             result = result.replace(ssn, replacement, 1)
 
         return result, detections
@@ -263,7 +263,7 @@ class PiiRedactionGuard(BaseGuard):
             for match in pattern.finditer(text):
                 ip = match.group()
                 start, end = match.span()
-                
+
                 detections.append({
                     "type": "ip_address",
                     "original": ip,
@@ -275,7 +275,7 @@ class PiiRedactionGuard(BaseGuard):
                     replacement = mask_text(ip, 2, 2)
                 else:  # remove
                     replacement = "[IP_REMOVED]"
-                
+
                 result = result.replace(ip, replacement, 1)
 
         return result, detections
@@ -288,7 +288,7 @@ class PiiRedactionGuard(BaseGuard):
         for match in IBAN_PATTERN.finditer(text):
             iban = match.group()
             start, end = match.span()
-            
+
             detections.append({
                 "type": "iban",
                 "original": iban,
@@ -300,7 +300,7 @@ class PiiRedactionGuard(BaseGuard):
                 replacement = mask_text(iban, 4, 4)
             else:  # remove
                 replacement = "[IBAN_REMOVED]"
-            
+
             result = result.replace(iban, replacement, 1)
 
         return result, detections
@@ -314,7 +314,7 @@ class PiiRedactionGuard(BaseGuard):
             for match in pattern.finditer(text):
                 address = match.group()
                 start, end = match.span()
-                
+
                 detections.append({
                     "type": "address",
                     "original": address,
@@ -326,7 +326,7 @@ class PiiRedactionGuard(BaseGuard):
                     replacement = mask_text(address, 2, 2)
                 else:  # remove
                     replacement = "[ADDRESS_REMOVED]"
-                
+
                 result = result.replace(address, replacement, 1)
 
         return result, detections
@@ -341,7 +341,7 @@ class PiiRedactionGuard(BaseGuard):
         for match in pattern.finditer(text):
             matched_text = match.group()
             start, end = match.span()
-            
+
             detections.append({
                 "type": pii_type,
                 "original": matched_text,
@@ -353,7 +353,7 @@ class PiiRedactionGuard(BaseGuard):
                 replacement = mask_text(matched_text)
             else:  # remove
                 replacement = f"[{pii_type.upper()}_REMOVED]"
-            
+
             result = result.replace(matched_text, replacement, 1)
 
         return result, detections

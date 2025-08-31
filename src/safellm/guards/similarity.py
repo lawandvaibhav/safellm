@@ -22,7 +22,7 @@ class SimilarityGuard(BaseGuard):
         use_fuzzy_matching: bool = True,
     ) -> None:
         """Initialize the similarity guard.
-        
+
         Args:
             similarity_threshold: Similarity threshold (0.0 to 1.0)
             action: What to do when similarity is detected
@@ -33,7 +33,7 @@ class SimilarityGuard(BaseGuard):
         self.action = action
         self.max_history_size = max_history_size
         self.use_fuzzy_matching = use_fuzzy_matching
-        
+
         # In-memory storage (in production, use Redis or database)
         self.content_hashes: dict[str, dict[str, Any]] = {}
         self.normalized_content: dict[str, str] = {}
@@ -51,11 +51,11 @@ class SimilarityGuard(BaseGuard):
 
         # Generate hash for exact duplicate detection
         content_hash = hashlib.md5(text.encode()).hexdigest()
-        
+
         # Normalize text for fuzzy matching
         normalized = self._normalize_text(text)
         normalized_hash = hashlib.md5(normalized.encode()).hexdigest()
-        
+
         evidence = {
             "content_hash": content_hash,
             "normalized_hash": normalized_hash,
@@ -72,7 +72,7 @@ class SimilarityGuard(BaseGuard):
                 "previous_audit_id": previous_info.get("audit_id"),
                 "previous_timestamp": previous_info.get("timestamp"),
             })
-            
+
             return self._handle_similarity_detection(data, reasons, evidence, ctx)
 
         # Check for fuzzy duplicates if enabled
@@ -88,7 +88,7 @@ class SimilarityGuard(BaseGuard):
                         "similar_hash": similar_content["hash"],
                         "similar_audit_id": similar_content.get("audit_id"),
                     })
-                    
+
                     result = self._handle_similarity_detection(data, reasons, evidence, ctx)
                     # Still store this content even if similar
                     self._store_content(content_hash, normalized_hash, normalized, ctx)
@@ -107,31 +107,31 @@ class SimilarityGuard(BaseGuard):
         """Normalize text for fuzzy comparison."""
         # Convert to lowercase
         normalized = text.lower()
-        
+
         # Remove extra whitespace
         normalized = re.sub(r'\s+', ' ', normalized)
-        
+
         # Remove punctuation (keep alphanumeric and spaces)
         normalized = re.sub(r'[^a-z0-9\s]', '', normalized)
-        
+
         # Remove common stop words for better similarity detection
         stop_words = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
             'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being'
         }
         words = normalized.split()
         filtered_words = [word for word in words if word not in stop_words]
-        
+
         return ' '.join(filtered_words).strip()
 
     def _find_similar_content(self, normalized_text: str) -> dict[str, Any] | None:
         """Find similar content using simple text similarity."""
         if not normalized_text:
             return None
-            
+
         best_similarity = 0.0
         best_match = None
-        
+
         for stored_hash, stored_text in self.normalized_content.items():
             similarity = self._calculate_similarity(normalized_text, stored_text)
             if similarity > best_similarity:
@@ -141,42 +141,42 @@ class SimilarityGuard(BaseGuard):
                     "similarity": similarity,
                     "text": stored_text,
                 }
-                
+
                 # Also get metadata if available
-                for content_hash, info in self.content_hashes.items():
+                for _content_hash, info in self.content_hashes.items():
                     if info.get("normalized_hash") == stored_hash:
                         best_match.update(info)
                         break
-        
+
         return best_match if best_similarity > 0 else None
 
     def _calculate_similarity(self, text1: str, text2: str) -> float:
         """Calculate similarity between two texts using simple metrics."""
         if not text1 or not text2:
             return 0.0
-        
+
         # Simple character-based similarity (Jaccard-like)
         set1 = set(text1.split())
         set2 = set(text2.split())
-        
+
         if not set1 and not set2:
             return 1.0
-        
+
         intersection = len(set1.intersection(set2))
         union = len(set1.union(set2))
-        
+
         return intersection / union if union > 0 else 0.0
 
     def _store_content(self, content_hash: str, normalized_hash: str, normalized_text: str, ctx: Context) -> None:
         """Store content for future comparison."""
         import time
-        
+
         # Limit storage size
         if len(self.content_hashes) >= self.max_history_size:
             # Remove oldest entries (simple FIFO)
             oldest_hash = next(iter(self.content_hashes))
             del self.content_hashes[oldest_hash]
-            
+
             # Also clean up normalized content
             if oldest_hash in self.normalized_content:
                 del self.normalized_content[oldest_hash]
@@ -188,7 +188,7 @@ class SimilarityGuard(BaseGuard):
             "user_role": ctx.user_role,
             "model": ctx.model,
         }
-        
+
         self.normalized_content[normalized_hash] = normalized_text
 
     def _handle_similarity_detection(

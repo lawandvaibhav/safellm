@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import re
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..context import Context
 from ..decisions import Decision
 from ..guard import BaseGuard
 
 if TYPE_CHECKING:
-    try:
-        import bleach
-    except ImportError:
-        pass
+    pass
 
 
 class HtmlSanitizerGuard(BaseGuard):
@@ -24,7 +21,7 @@ class HtmlSanitizerGuard(BaseGuard):
         'p', 'br', 'strong', 'em', 'u', 'b', 'i', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'ul', 'ol', 'li', 'blockquote', 'code', 'pre'
     ]
-    
+
     DEFAULT_ATTRIBUTES = {
         '*': ['class', 'id'],
         'a': ['href', 'title'],
@@ -39,7 +36,7 @@ class HtmlSanitizerGuard(BaseGuard):
         strip_comments: bool = True,
     ) -> None:
         """Initialize the HTML sanitizer guard.
-        
+
         Args:
             policy: Sanitization policy - 'strict', 'moderate', or 'custom'
             allowed_tags: List of allowed HTML tags (for custom policy)
@@ -64,7 +61,7 @@ class HtmlSanitizerGuard(BaseGuard):
         # Try to import bleach for advanced sanitization
         self._has_bleach = False
         try:
-            import bleach
+            import bleach  # noqa: F401
             self._has_bleach = True
         except ImportError:
             pass
@@ -124,7 +121,6 @@ class HtmlSanitizerGuard(BaseGuard):
 
     def _sanitize_html(self, text: str) -> tuple[str, list[dict[str, Any]]]:
         """Sanitize HTML content and return issues found."""
-        issues = []
 
         if self._has_bleach:
             return self._sanitize_with_bleach(text)
@@ -136,10 +132,10 @@ class HtmlSanitizerGuard(BaseGuard):
         import bleach
 
         issues = []
-        
+
         # Track what was removed
         original_tags = self._extract_tags(text)
-        
+
         # Sanitize
         sanitized = bleach.clean(
             text,
@@ -148,11 +144,11 @@ class HtmlSanitizerGuard(BaseGuard):
             strip=True,
             strip_comments=self.strip_comments,
         )
-        
+
         # Check what was changed
         sanitized_tags = self._extract_tags(sanitized)
         removed_tags = original_tags - sanitized_tags
-        
+
         if removed_tags:
             issues.append({
                 "type": "removed_tags",
@@ -177,10 +173,10 @@ class HtmlSanitizerGuard(BaseGuard):
         # Remove all script and style tags
         script_pattern = re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL)
         style_pattern = re.compile(r'<style[^>]*>.*?</style>', re.IGNORECASE | re.DOTALL)
-        
+
         scripts_found = script_pattern.findall(result)
         styles_found = style_pattern.findall(result)
-        
+
         if scripts_found:
             issues.append({
                 "type": "removed_scripts",
@@ -221,7 +217,7 @@ class HtmlSanitizerGuard(BaseGuard):
         if self.policy == "strict":
             all_tags = self._extract_tags(result)
             disallowed_tags = all_tags - set(self.allowed_tags)
-            
+
             for tag in disallowed_tags:
                 # Remove opening and closing tags
                 tag_pattern = re.compile(f'</?{re.escape(tag)}[^>]*>', re.IGNORECASE)
@@ -249,7 +245,7 @@ class MarkdownSanitizerGuard(BaseGuard):
         allowed_tags: list[str] | None = None,
     ) -> None:
         """Initialize the Markdown sanitizer guard.
-        
+
         Args:
             allow_html: Whether to allow HTML tags in Markdown
             allowed_tags: List of allowed HTML tags (if allow_html is True)

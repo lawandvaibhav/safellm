@@ -1,18 +1,12 @@
 """Comprehensive test coverage for all guards and utilities."""
 
 import unittest
-from unittest.mock import Mock, patch
 
 from safellm.context import Context
-from safellm.decisions import Decision
 from safellm.guards import (
     HtmlSanitizerGuard,
     LengthGuard,
-    MarkdownSanitizerGuard,
     PiiRedactionGuard,
-    ProfanityGuard,
-    SchemaGuard,
-    SecretMaskGuard,
 )
 
 
@@ -24,20 +18,20 @@ class TestCoreGuards(unittest.TestCase):
         # Test with min_chars
         guard = LengthGuard(min_chars=5)
         ctx = Context()
-        
+
         # Test text too short
         result = guard.check("Hi", ctx)
         self.assertEqual(result.action, "deny")
-        
+
         # Test text long enough
         result = guard.check("Hello World", ctx)
         self.assertEqual(result.action, "allow")
-        
+
         # Test with max_chars
         guard = LengthGuard(max_chars=10)
         result = guard.check("Hello", ctx)
         self.assertEqual(result.action, "allow")
-        
+
         result = guard.check("This is too long", ctx)
         self.assertEqual(result.action, "deny")
 
@@ -46,7 +40,7 @@ class TestCoreGuards(unittest.TestCase):
         # Test mask mode
         guard = PiiRedactionGuard(mode="mask")
         ctx = Context()
-        
+
         # Test email detection
         result = guard.check("Contact me at user@example.com", ctx)
         self.assertIn(result.action, ["allow", "transform"])
@@ -56,7 +50,7 @@ class TestCoreGuards(unittest.TestCase):
         # Test strict policy
         guard = HtmlSanitizerGuard(policy="strict")
         ctx = Context()
-        
+
         # Test safe HTML
         result = guard.check("<p>Safe content</p>", ctx)
         self.assertIn(result.action, ["allow", "transform"])

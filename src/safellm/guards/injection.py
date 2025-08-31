@@ -71,7 +71,7 @@ class PromptInjectionGuard(BaseGuard):
         custom_patterns: dict[str, list[str]] | None = None,
     ) -> None:
         """Initialize the prompt injection guard.
-        
+
         Args:
             action: What to do when injection is detected
             confidence_threshold: Minimum confidence to trigger action
@@ -81,14 +81,14 @@ class PromptInjectionGuard(BaseGuard):
         self.action = action
         self.confidence_threshold = confidence_threshold
         self.categories = set(categories) if categories else set(self.INJECTION_PATTERNS.keys())
-        
+
         # Combine default and custom patterns
         self.patterns = {}
         for category in self.categories:
             patterns = self.INJECTION_PATTERNS.get(category, [])
             if custom_patterns and category in custom_patterns:
                 patterns.extend(custom_patterns[category])
-            
+
             # Compile regex patterns
             self.patterns[category] = [
                 re.compile(pattern, re.IGNORECASE | re.MULTILINE)
@@ -109,7 +109,7 @@ class PromptInjectionGuard(BaseGuard):
         # Detect injection attempts
         detections = self._detect_injections(text)
         confidence_score = self._calculate_confidence(detections)
-        
+
         evidence = {
             "detections": detections,
             "confidence_score": confidence_score,
@@ -118,12 +118,12 @@ class PromptInjectionGuard(BaseGuard):
         }
 
         if confidence_score >= self.confidence_threshold:
-            categories_found = list(set(d["category"] for d in detections))
+            categories_found = list({d["category"] for d in detections})
             reasons = [f"Prompt injection detected (confidence: {confidence_score:.2f})"]
             reasons.append(f"Categories: {', '.join(categories_found)}")
-            
+
             evidence["triggered_categories"] = categories_found
-            
+
             if self.action == "block":
                 return Decision.deny(
                     data,
@@ -157,7 +157,7 @@ class PromptInjectionGuard(BaseGuard):
     def _detect_injections(self, text: str) -> list[dict[str, Any]]:
         """Detect injection patterns in text."""
         detections = []
-        
+
         for category, patterns in self.patterns.items():
             for pattern in patterns:
                 matches = list(pattern.finditer(text))
@@ -171,50 +171,50 @@ class PromptInjectionGuard(BaseGuard):
                         "context": text[max(0, match.start() - 30):match.end() + 30],
                         "weight": self.PATTERN_WEIGHTS.get(category, 0.5),
                     })
-        
+
         return detections
 
     def _calculate_confidence(self, detections: list[dict[str, Any]]) -> float:
         """Calculate injection confidence score."""
         if not detections:
             return 0.0
-        
+
         # Group by category to avoid over-weighting
         category_confidences = {}
         for detection in detections:
             category = detection["category"]
             weight = detection["weight"]
-            
+
             if category not in category_confidences:
                 category_confidences[category] = []
             category_confidences[category].append(weight)
-        
+
         # Calculate weighted confidence
         total_confidence = 0.0
-        for category, weights in category_confidences.items():
+        for _category, weights in category_confidences.items():
             # Take max weight per category, add bonus for multiple matches
             max_weight = max(weights)
             match_bonus = min(0.2, (len(weights) - 1) * 0.05)
             category_confidence = min(1.0, max_weight + match_bonus)
             total_confidence += category_confidence
-        
+
         # Normalize and add multi-category bonus
         base_confidence = total_confidence / len(category_confidences)
         multi_category_bonus = min(0.3, (len(category_confidences) - 1) * 0.1)
-        
+
         return min(1.0, base_confidence + multi_category_bonus)
 
     def _sanitize_injections(self, text: str, detections: list[dict[str, Any]]) -> str:
         """Sanitize injection attempts from text."""
         # Sort detections by start position in reverse order
         sorted_detections = sorted(detections, key=lambda x: x["start"], reverse=True)
-        
+
         result = text
         for detection in sorted_detections:
             start = detection["start"]
             end = detection["end"]
             category = detection["category"]
-            
+
             # Create appropriate sanitization
             if category in ["role_manipulation", "instruction_override"]:
                 replacement = "[INSTRUCTION_OVERRIDE_REMOVED]"
@@ -228,9 +228,9 @@ class PromptInjectionGuard(BaseGuard):
                 replacement = "[SOCIAL_ENGINEERING_REMOVED]"
             else:
                 replacement = "[INJECTION_ATTEMPT_REMOVED]"
-            
+
             result = result[:start] + replacement + result[end:]
-        
+
         return result
 
     def _is_potential_instruction(self, text: str) -> bool:
@@ -241,9 +241,9 @@ class PromptInjectionGuard(BaseGuard):
             r'(?:^|\n)\s*(?:write|create|make|build|design|develop)',
             r'(?:^|\n)\s*(?:ignore|forget|disregard|override|bypass)',
         ]
-        
+
         for pattern in instruction_indicators:
             if re.search(pattern, text, re.IGNORECASE | re.MULTILINE):
                 return True
-        
+
         return False

@@ -8,7 +8,7 @@ from typing import Any, Literal, NamedTuple
 
 class Decision(NamedTuple):
     """Result of a validation pipeline or guard check.
-    
+
     Attributes:
         allowed: Whether the data passed validation
         action: The action to take (allow, deny, transform, retry)

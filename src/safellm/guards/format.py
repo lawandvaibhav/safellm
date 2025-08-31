@@ -23,7 +23,7 @@ class FormatGuard(BaseGuard):
         allow_null: bool = False,
     ) -> None:
         """Initialize the format guard.
-        
+
         Args:
             format_type: Type of format to validate against
             pattern: Custom regex pattern for 'custom' format_type
@@ -35,13 +35,13 @@ class FormatGuard(BaseGuard):
         self.action = action
         self.strict = strict
         self.allow_null = allow_null
-        
+
         if format_type == "custom" and not pattern:
             raise ValueError("Custom format requires a pattern")
-        
+
         self.pattern = pattern
         self._compiled_pattern = None
-        
+
         if format_type == "custom" and pattern:
             self._compiled_pattern = re.compile(pattern)
 
@@ -75,14 +75,14 @@ class FormatGuard(BaseGuard):
 
         # Validate format
         is_valid, error_details = self._validate_format(text)
-        
+
         evidence = {
             "format_type": self.format_type,
             "strict_mode": self.strict,
             "input_length": len(text),
             "validation_result": is_valid,
         }
-        
+
         if error_details:
             evidence.update(error_details)
 
@@ -90,7 +90,7 @@ class FormatGuard(BaseGuard):
             reasons = [f"Invalid format: expected {self.format_type}"]
             if error_details.get("error"):
                 reasons.append(f"Error: {error_details['error']}")
-            
+
             if self.action == "block":
                 return Decision.deny(
                     data,
@@ -134,7 +134,7 @@ class FormatGuard(BaseGuard):
     def _validate_format(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate text against the specified format."""
         error_details = {}
-        
+
         try:
             if self.format_type == "json":
                 return self._validate_json(text)
@@ -157,7 +157,7 @@ class FormatGuard(BaseGuard):
             else:
                 error_details["error"] = f"Unknown format type: {self.format_type}"
                 return False, error_details
-                
+
         except Exception as e:
             error_details["error"] = str(e)
             error_details["exception_type"] = type(e).__name__
@@ -184,10 +184,10 @@ class FormatGuard(BaseGuard):
         else:
             # Basic email pattern
             pattern = r'^[^@\s]+@[^@\s]+\.[^@\s]+$'
-        
+
         is_valid = bool(re.match(pattern, text))
         details = {"strict_mode": self.strict}
-        
+
         if is_valid:
             parts = text.split('@')
             details.update({
@@ -196,7 +196,7 @@ class FormatGuard(BaseGuard):
             })
         else:
             details["error"] = "Invalid email format"
-        
+
         return is_valid, details
 
     def _validate_url(self, text: str) -> tuple[bool, dict[str, Any]]:
@@ -207,10 +207,10 @@ class FormatGuard(BaseGuard):
         else:
             # Basic URL pattern
             pattern = r'^https?://\S+$'
-        
+
         is_valid = bool(re.match(pattern, text))
         details = {"strict_mode": self.strict}
-        
+
         if is_valid:
             # Extract URL components
             match = re.match(r'^(https?)://([^:/]+)(?::(\d+))?(/.*)?$', text)
@@ -223,51 +223,51 @@ class FormatGuard(BaseGuard):
                 })
         else:
             details["error"] = "Invalid URL format"
-        
+
         return is_valid, details
 
     def _validate_phone(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate phone number format."""
         # Remove common separators
         cleaned = re.sub(r'[\s\-\(\)\.]', '', text)
-        
+
         if self.strict:
             # E.164 format: +1234567890
             pattern = r'^\+\d{1,3}\d{4,14}$'
         else:
             # US format or international
             pattern = r'^(?:\+?1)?[2-9]\d{2}[2-9]\d{2}\d{4}$|^\+\d{1,3}\d{4,14}$'
-        
+
         is_valid = bool(re.match(pattern, cleaned))
         details = {
             "strict_mode": self.strict,
             "cleaned_number": cleaned,
             "original_format": text,
         }
-        
+
         if not is_valid:
             details["error"] = "Invalid phone number format"
-        
+
         return is_valid, details
 
     def _validate_credit_card(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate credit card format."""
         # Remove spaces and dashes
         cleaned = re.sub(r'[\s\-]', '', text)
-        
+
         # Basic pattern: 13-19 digits
         if not re.match(r'^\d{13,19}$', cleaned):
             return False, {"error": "Invalid credit card format: must be 13-19 digits"}
-        
+
         # Luhn algorithm check if strict
         if self.strict:
             is_valid = self._luhn_check(cleaned)
             if not is_valid:
                 return False, {"error": "Invalid credit card: failed Luhn check"}
-        
+
         # Detect card type
         card_type = self._detect_card_type(cleaned)
-        
+
         return True, {
             "cleaned_number": cleaned,
             "card_type": card_type,
@@ -278,7 +278,7 @@ class FormatGuard(BaseGuard):
         """Validate IPv4 address format."""
         pattern = r'^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$'
         is_valid = bool(re.match(pattern, text))
-        
+
         details = {}
         if is_valid:
             octets = [int(octet) for octet in text.split('.')]
@@ -286,7 +286,7 @@ class FormatGuard(BaseGuard):
             details["is_private"] = self._is_private_ipv4(octets)
         else:
             details["error"] = "Invalid IPv4 address format"
-        
+
         return is_valid, details
 
     def _validate_ipv6(self, text: str) -> tuple[bool, dict[str, Any]]:
@@ -294,22 +294,22 @@ class FormatGuard(BaseGuard):
         # Simplified IPv6 validation
         pattern = r'^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$'
         compressed_pattern = r'^(?:[0-9a-fA-F]{1,4}:)*::(?:[0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$'
-        
+
         is_valid = bool(re.match(pattern, text) or re.match(compressed_pattern, text))
-        
+
         details = {}
         if is_valid:
             details["compressed"] = "::" in text
         else:
             details["error"] = "Invalid IPv6 address format"
-        
+
         return is_valid, details
 
     def _validate_uuid(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate UUID format."""
         pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
         is_valid = bool(re.match(pattern, text))
-        
+
         details = {}
         if is_valid:
             # Extract version
@@ -317,23 +317,23 @@ class FormatGuard(BaseGuard):
             details["version"] = version
         else:
             details["error"] = "Invalid UUID format"
-        
+
         return is_valid, details
 
     def _validate_custom(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate against custom pattern."""
         if not self._compiled_pattern:
             return False, {"error": "No custom pattern defined"}
-        
+
         match = self._compiled_pattern.match(text)
         is_valid = bool(match)
-        
+
         details = {"pattern": self.pattern}
         if match and match.groups():
             details["groups"] = match.groups()
         if not is_valid:
             details["error"] = "Text does not match custom pattern"
-        
+
         return is_valid, details
 
     def _attempt_transform(self, text: str) -> str:
@@ -355,14 +355,14 @@ class FormatGuard(BaseGuard):
         elif self.format_type == "credit_card":
             # Remove spaces and dashes
             return re.sub(r'[\s\-]', '', text)
-        
+
         return text
 
     def _luhn_check(self, number: str) -> bool:
         """Validate credit card number using Luhn algorithm."""
         total = 0
         reverse_digits = number[::-1]
-        
+
         for i, digit in enumerate(reverse_digits):
             n = int(digit)
             if i % 2 == 1:
@@ -370,7 +370,7 @@ class FormatGuard(BaseGuard):
                 if n > 9:
                     n = (n // 10) + (n % 10)
             total += n
-        
+
         return total % 10 == 0
 
     def _detect_card_type(self, number: str) -> str:

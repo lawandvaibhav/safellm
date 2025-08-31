@@ -3,31 +3,30 @@
 Deterministic outputs. Safe content. Production-grade controls for AI apps.
 """
 
+# Import guards
+from . import guards
 from .context import Context
 from .decisions import Decision, ValidationError
 from .guard import AsyncGuard, BaseGuard, Guard
 from .pipeline import Pipeline
-
-# Import guards
-from . import guards
 
 __version__ = "0.1.0"
 
 __all__ = [
     # Core classes
     "Pipeline",
-    "Context", 
+    "Context",
     "Decision",
     "ValidationError",
-    
+
     # Guard interfaces
     "Guard",
-    "BaseGuard", 
+    "BaseGuard",
     "AsyncGuard",
-    
+
     # Guards module
     "guards",
-    
+
     # Version
     "__version__",
 ]

@@ -22,7 +22,7 @@ class RateLimitGuard(BaseGuard):
         block_duration: int = 300,  # 5 minutes block
     ) -> None:
         """Initialize the rate limiting guard.
-        
+
         Args:
             max_requests: Maximum requests allowed in the time window
             window_seconds: Time window in seconds
@@ -33,7 +33,7 @@ class RateLimitGuard(BaseGuard):
         self.window_seconds = window_seconds
         self.key_extractor = key_extractor
         self.block_duration = block_duration
-        
+
         # In-memory storage (in production, use Redis or similar)
         self.request_history: dict[str, deque[float]] = defaultdict(deque)
         self.blocked_until: dict[str, float] = {}
@@ -47,7 +47,7 @@ class RateLimitGuard(BaseGuard):
         # Extract rate limiting key from context
         rate_key = self._get_rate_key(ctx)
         current_time = time.time()
-        
+
         # Check if currently blocked
         if rate_key in self.blocked_until:
             if current_time < self.blocked_until[rate_key]:
@@ -65,14 +65,14 @@ class RateLimitGuard(BaseGuard):
             else:
                 # Block period expired
                 del self.blocked_until[rate_key]
-        
+
         # Clean old requests outside the window
         request_times = self.request_history[rate_key]
         cutoff_time = current_time - self.window_seconds
-        
+
         while request_times and request_times[0] < cutoff_time:
             request_times.popleft()
-        
+
         # Check if adding this request would exceed the limit
         if len(request_times) >= self.max_requests:
             # Block the user
@@ -89,10 +89,10 @@ class RateLimitGuard(BaseGuard):
                     "blocked_for_seconds": self.block_duration,
                 },
             )
-        
+
         # Add current request to history
         request_times.append(current_time)
-        
+
         return Decision.allow(
             data,
             audit_id=ctx.audit_id,

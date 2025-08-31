@@ -17,11 +17,11 @@ class Guard(Protocol):
 
     def check(self, data: Any, ctx: Context) -> Decision:
         """Synchronously check data and return a decision.
-        
+
         Args:
             data: The data to validate
             ctx: Context object with request metadata
-            
+
         Returns:
             Decision object indicating the result
         """
@@ -29,11 +29,11 @@ class Guard(Protocol):
 
     async def acheck(self, data: Any, ctx: Context) -> Decision:
         """Asynchronously check data and return a decision.
-        
+
         Args:
             data: The data to validate
             ctx: Context object with request metadata
-            
+
         Returns:
             Decision object indicating the result
         """
@@ -42,7 +42,7 @@ class Guard(Protocol):
 
 class BaseGuard(ABC):
     """Base class for implementing guards.
-    
+
     Provides default async implementation that calls the sync version.
     Subclasses should implement either check() or both check() and acheck().
     """
@@ -60,7 +60,7 @@ class BaseGuard(ABC):
 
     async def acheck(self, data: Any, ctx: Context) -> Decision:
         """Asynchronously check data and return a decision.
-        
+
         Default implementation calls the synchronous check method.
         Override this method for guards that need async operations.
         """
@@ -69,7 +69,7 @@ class BaseGuard(ABC):
 
 class AsyncGuard(ABC):
     """Base class for guards that are primarily asynchronous.
-    
+
     Provides default sync implementation that runs the async version.
     Use this for guards that need to make network calls or other async operations.
     """
@@ -82,12 +82,12 @@ class AsyncGuard(ABC):
 
     def check(self, data: Any, ctx: Context) -> Decision:
         """Synchronously check data by running async implementation.
-        
+
         Note: This will raise an error if called from within an async context.
         Use acheck() directly in async code.
         """
         import asyncio
-        
+
         try:
             # Check if we're already in an event loop
             asyncio.get_running_loop()
@@ -98,7 +98,7 @@ class AsyncGuard(ABC):
         except RuntimeError:
             # No event loop running, we can create one
             pass
-        
+
         return asyncio.run(self.acheck(data, ctx))
 
     @abstractmethod

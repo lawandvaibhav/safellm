@@ -12,7 +12,7 @@ class TestDecision(unittest.TestCase):
         """Test creating an allow decision."""
         data = {"test": "data"}
         decision = Decision.allow(data)
-        
+
         self.assertTrue(decision.allowed)
         self.assertEqual(decision.action, "allow")
         self.assertEqual(decision.reasons, [])
@@ -25,9 +25,9 @@ class TestDecision(unittest.TestCase):
         data = "test"
         evidence = {"test": True}
         audit_id = "test-audit-id"
-        
+
         decision = Decision.allow(data, audit_id=audit_id, evidence=evidence)
-        
+
         self.assertTrue(decision.allowed)
         self.assertEqual(decision.action, "allow")
         self.assertEqual(decision.evidence, evidence)
@@ -37,9 +37,9 @@ class TestDecision(unittest.TestCase):
         """Test creating a deny decision."""
         data = "bad data"
         reasons = ["Invalid format", "Contains forbidden content"]
-        
+
         decision = Decision.deny(data, reasons)
-        
+
         self.assertFalse(decision.allowed)
         self.assertEqual(decision.action, "deny")
         self.assertEqual(decision.reasons, reasons)
@@ -51,9 +51,9 @@ class TestDecision(unittest.TestCase):
         original = "Original data with secrets"
         transformed = "Original data with ****"
         reasons = ["Masked secrets"]
-        
+
         decision = Decision.transform(original, transformed, reasons)
-        
+
         self.assertTrue(decision.allowed)
         self.assertEqual(decision.action, "transform")
         self.assertEqual(decision.reasons, reasons)
@@ -64,9 +64,9 @@ class TestDecision(unittest.TestCase):
         """Test creating a retry decision."""
         data = "ambiguous data"
         reasons = ["Needs clarification"]
-        
+
         decision = Decision.retry(data, reasons)
-        
+
         self.assertFalse(decision.allowed)
         self.assertEqual(decision.action, "retry")
         self.assertEqual(decision.reasons, reasons)
@@ -74,16 +74,16 @@ class TestDecision(unittest.TestCase):
         self.assertIsNotNone(decision.audit_id)
 
 
-class TestValidationError:
+class TestValidationError(unittest.TestCase):
     """Test the ValidationError exception."""
 
     def test_validation_error_creation(self):
         """Test creating a ValidationError from a decision."""
         reasons = ["Invalid input", "Format error"]
         decision = Decision.deny("bad data", reasons)
-        
+
         error = ValidationError(decision)
-        
+
         self.assertEqual(error.decision, decision)
         self.assertEqual(error.audit_id, decision.audit_id)
         self.assertEqual(error.reasons, reasons)
@@ -94,14 +94,14 @@ class TestValidationError:
         """Test ValidationError with a single reason."""
         decision = Decision.deny("data", ["Single error"])
         error = ValidationError(decision)
-        
+
         self.assertEqual(str(error), "Single error")
 
     def test_validation_error_no_reasons(self):
         """Test ValidationError with no reasons."""
         decision = Decision.deny("data", [])
         error = ValidationError(decision)
-        
+
         self.assertEqual(str(error), "")
 
 

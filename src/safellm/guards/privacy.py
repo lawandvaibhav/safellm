@@ -77,7 +77,7 @@ class PrivacyComplianceGuard(BaseGuard):
         include_categories: list[str] | None = None,
     ) -> None:
         """Initialize the privacy compliance guard.
-        
+
         Args:
             frameworks: List of compliance frameworks to check against
             action: What to do when privacy violations are detected
@@ -87,7 +87,7 @@ class PrivacyComplianceGuard(BaseGuard):
         self.frameworks = frameworks or ["gdpr", "ccpa"]
         self.action = action
         self.sensitivity_threshold = sensitivity_threshold
-        
+
         # Determine which categories to check
         if include_categories:
             self.categories = set(include_categories)
@@ -97,7 +97,7 @@ class PrivacyComplianceGuard(BaseGuard):
             for framework in self.frameworks:
                 if framework in self.COMPLIANCE_RULES:
                     self.categories.update(self.COMPLIANCE_RULES[framework]["required_categories"])
-        
+
         # Compile patterns for selected categories
         self.compiled_patterns = {}
         for category in self.categories:
@@ -121,10 +121,10 @@ class PrivacyComplianceGuard(BaseGuard):
         # Detect privacy-sensitive content
         detections = self._detect_privacy_issues(text)
         sensitivity_score = self._calculate_sensitivity_score(detections)
-        
+
         # Check against compliance frameworks
         violations = self._check_compliance_violations(detections)
-        
+
         evidence = {
             "detections": detections,
             "sensitivity_score": sensitivity_score,
@@ -139,7 +139,7 @@ class PrivacyComplianceGuard(BaseGuard):
                 reasons.append(f"Privacy compliance violations detected: {', '.join(violations)}")
             if sensitivity_score >= self.sensitivity_threshold:
                 reasons.append(f"High privacy sensitivity score: {sensitivity_score:.2f}")
-            
+
             if self.action == "block":
                 return Decision.deny(
                     data,
@@ -173,7 +173,7 @@ class PrivacyComplianceGuard(BaseGuard):
     def _detect_privacy_issues(self, text: str) -> list[dict[str, Any]]:
         """Detect privacy-sensitive content in text."""
         detections = []
-        
+
         for category, patterns in self.compiled_patterns.items():
             for pattern in patterns:
                 matches = list(pattern.finditer(text))
@@ -186,14 +186,14 @@ class PrivacyComplianceGuard(BaseGuard):
                         "end": match.end(),
                         "context": text[max(0, match.start() - 20):match.end() + 20],
                     })
-        
+
         return detections
 
     def _calculate_sensitivity_score(self, detections: list[dict[str, Any]]) -> float:
         """Calculate privacy sensitivity score."""
         if not detections:
             return 0.0
-        
+
         # Weight different categories by sensitivity
         category_weights = {
             "medical": 1.0,
@@ -204,53 +204,53 @@ class PrivacyComplianceGuard(BaseGuard):
             "location": 0.7,
             "communication": 0.6,
         }
-        
+
         category_scores = {}
         for detection in detections:
             category = detection["category"]
             weight = category_weights.get(category, 0.5)
-            
+
             if category not in category_scores:
                 category_scores[category] = 0.0
-            
+
             category_scores[category] = max(category_scores[category], weight)
-        
+
         # Calculate overall score
         if not category_scores:
             return 0.0
-        
+
         # Average of category scores with bonus for multiple categories
         base_score = sum(category_scores.values()) / len(category_scores)
         category_bonus = min(0.3, (len(category_scores) - 1) * 0.1)
-        
+
         return min(1.0, base_score + category_bonus)
 
     def _check_compliance_violations(self, detections: list[dict[str, Any]]) -> list[str]:
         """Check for specific compliance framework violations."""
         violations = []
-        detected_categories = set(d["category"] for d in detections)
-        
+        detected_categories = {d["category"] for d in detections}
+
         for framework in self.frameworks:
             if framework in self.COMPLIANCE_RULES:
                 required_categories = self.COMPLIANCE_RULES[framework]["required_categories"]
                 framework_violations = detected_categories.intersection(required_categories)
-                
+
                 if framework_violations:
                     violations.append(f"{framework.upper()} ({', '.join(framework_violations)})")
-        
+
         return violations
 
     def _anonymize_content(self, text: str, detections: list[dict[str, Any]]) -> str:
         """Anonymize privacy-sensitive content."""
         # Sort detections by start position in reverse order
         sorted_detections = sorted(detections, key=lambda x: x["start"], reverse=True)
-        
+
         result = text
         for detection in sorted_detections:
             start = detection["start"]
             end = detection["end"]
             category = detection["category"]
-            
+
             # Create appropriate replacement
             if category == "medical":
                 replacement = "[MEDICAL_INFO_REDACTED]"
@@ -268,7 +268,7 @@ class PrivacyComplianceGuard(BaseGuard):
                 replacement = "[MINOR_INFO_REDACTED]"
             else:
                 replacement = "[PRIVACY_SENSITIVE_REDACTED]"
-            
+
             result = result[:start] + replacement + result[end:]
-        
+
         return result

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Literal, Sequence
+from collections.abc import Sequence
+from typing import Any, Literal
 
 from .context import Context
 from .decisions import Decision
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class Pipeline:
     """Validation pipeline that executes a sequence of guards.
-    
+
     The pipeline runs guards in order and can be configured to fail fast
     or continue on errors.
     """
@@ -28,7 +29,7 @@ class Pipeline:
         on_error: Literal["deny", "allow", "transform"] = "deny",
     ) -> None:
         """Initialize the pipeline.
-        
+
         Args:
             name: Name of the pipeline for identification
             steps: Sequence of guards to execute in order
@@ -45,11 +46,11 @@ class Pipeline:
 
     def validate(self, data: Any, *, ctx: Context | None = None) -> Decision:
         """Synchronously validate data through the pipeline.
-        
+
         Args:
             data: The data to validate
             ctx: Optional context object (will be created if not provided)
-            
+
         Returns:
             Final decision from the pipeline
         """
@@ -69,9 +70,9 @@ class Pipeline:
                     f"Running guard {guard.name} (step {i+1}/{len(self.steps)})",
                     extra={"audit_id": ctx.audit_id, "guard": guard.name}
                 )
-                
+
                 decision = guard.check(current_data, ctx)
-                
+
                 # Collect reasons and evidence
                 all_reasons.extend(decision.reasons)
                 all_evidence.update(decision.evidence)
@@ -88,7 +89,7 @@ class Pipeline:
                             audit_id=ctx.audit_id,
                             evidence=all_evidence,
                         )
-                
+
                 elif decision.action == "transform":
                     logger.debug(
                         f"Guard {guard.name} transformed data: {', '.join(decision.reasons)}",
@@ -96,7 +97,7 @@ class Pipeline:
                     )
                     current_data = decision.output
                     transformations += 1
-                
+
                 elif decision.action == "retry":
                     logger.info(
                         f"Guard {guard.name} requested retry: {', '.join(decision.reasons)}",
@@ -116,10 +117,10 @@ class Pipeline:
                     extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     exc_info=True
                 )
-                
+
                 error_reason = f"Guard {guard.name} failed: {str(e)}"
                 all_reasons.append(error_reason)
-                
+
                 if self.on_error == "deny" or self.fail_fast:
                     return Decision.deny(
                         current_data,
@@ -169,11 +170,11 @@ class Pipeline:
 
     async def avalidate(self, data: Any, *, ctx: Context | None = None) -> Decision:
         """Asynchronously validate data through the pipeline.
-        
+
         Args:
             data: The data to validate
             ctx: Optional context object (will be created if not provided)
-            
+
         Returns:
             Final decision from the pipeline
         """
@@ -193,9 +194,9 @@ class Pipeline:
                     f"Running guard {guard.name} (step {i+1}/{len(self.steps)})",
                     extra={"audit_id": ctx.audit_id, "guard": guard.name}
                 )
-                
+
                 decision = await guard.acheck(current_data, ctx)
-                
+
                 # Collect reasons and evidence
                 all_reasons.extend(decision.reasons)
                 all_evidence.update(decision.evidence)
@@ -212,7 +213,7 @@ class Pipeline:
                             audit_id=ctx.audit_id,
                             evidence=all_evidence,
                         )
-                
+
                 elif decision.action == "transform":
                     logger.debug(
                         f"Guard {guard.name} transformed data: {', '.join(decision.reasons)}",
@@ -220,7 +221,7 @@ class Pipeline:
                     )
                     current_data = decision.output
                     transformations += 1
-                
+
                 elif decision.action == "retry":
                     logger.info(
                         f"Guard {guard.name} requested retry: {', '.join(decision.reasons)}",
@@ -240,10 +241,10 @@ class Pipeline:
                     extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     exc_info=True
                 )
-                
+
                 error_reason = f"Guard {guard.name} failed: {str(e)}"
                 all_reasons.append(error_reason)
-                
+
                 if self.on_error == "deny" or self.fail_fast:
                     return Decision.deny(
                         current_data,
