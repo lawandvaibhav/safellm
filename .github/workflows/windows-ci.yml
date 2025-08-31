@@ -1,0 +1,45 @@
+name: Windows CI (Experimental)
+
+# This workflow is temporarily disabled due to pip timeout issues
+# on Windows runners in GitHub Actions. We're working on a fix.
+
+on:
+  workflow_dispatch:  # Manual trigger only for now
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      timeout-minutes: 20
+      shell: cmd
+      run: |
+        pip install -e . --no-deps
+        pip install typing-extensions>=4.9
+        pip install pytest>=8.0 pytest-cov>=4.0 pytest-asyncio>=0.23
+        pip install ruff>=0.4 mypy>=1.8 black>=24.0 bandit>=1.7
+        pip install jsonschema>=4.21 pydantic>=2.6 bleach>=6.1
+        pip install types-jsonschema types-bleach
+
+    - name: Lint with ruff
+      run: |
+        ruff check src/ tests/
+
+    - name: Type check with mypy
+      run: |
+        mypy src/safellm
+
+    - name: Test with pytest
+      run: |
+        pytest --cov=safellm --cov-report=term-missing

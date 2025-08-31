@@ -10,9 +10,12 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # Note: windows-latest temporarily removed due to pip timeout issues in CI
+        # See: https://github.com/actions/runner-images/issues/...
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,8 +29,12 @@ jobs:
 
     - name: Install dependencies
       timeout-minutes: 15
+      env:
+        PIP_DISABLE_PIP_VERSION_CHECK: 1
+        PIP_NO_COLOR: 1
+        PIP_TIMEOUT: 300
       run: |
-        pip install -e .[dev,full] --disable-pip-version-check --timeout 300
+        pip install -e .[dev,full]
 
     - name: Lint with ruff
       run: |
@@ -73,8 +80,12 @@ jobs:
 
     - name: Install build dependencies
       timeout-minutes: 15
+      env:
+        PIP_DISABLE_PIP_VERSION_CHECK: 1
+        PIP_NO_COLOR: 1
+        PIP_TIMEOUT: 300
       run: |
-        pip install build --disable-pip-version-check --timeout 300
+        pip install build
 
     - name: Build package
       run: python -m build

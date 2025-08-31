@@ -1,0 +1,16 @@
+# CI requirements file for reliable installation
+typing-extensions>=4.9
+pytest>=8.0
+pytest-cov>=4.0
+pytest-asyncio>=0.23
+hypothesis>=6.0
+ruff>=0.4
+mypy>=1.8
+black>=24.0
+isort>=5.12
+bandit>=1.7
+jsonschema>=4.21
+pydantic>=2.6
+bleach>=6.1
+types-jsonschema
+types-bleach
