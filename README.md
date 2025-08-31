@@ -317,6 +317,35 @@ ruff check src/ tests/
 mypy src/safellm
 ```
 
+### Local CI Checks
+
+SafeLLM includes comprehensive scripts to run all CI checks locally, helping you catch issues before pushing to GitHub:
+
+```bash
+# Run all CI checks (recommended before pushing)
+python scripts/run_ci_checks.py
+
+# Quick check during development (skips slower checks)
+python scripts/run_ci_checks.py --fast
+
+# Skip specific checks
+python scripts/run_ci_checks.py --skip mypy,bandit
+
+# Platform-specific alternatives
+./scripts/run_ci_checks.sh --fast          # Bash (Unix/Linux/macOS)
+.\scripts\run_ci_checks.ps1 -Fast          # PowerShell (Windows)
+```
+
+The CI scripts run:
+- ✅ **Ruff** - Code linting and style checking
+- ✅ **Black** - Code formatting verification  
+- ✅ **MyPy** - Static type checking
+- ✅ **Bandit** - Security vulnerability scanning
+- ✅ **Pytest** - Unit tests with coverage reporting
+- ✅ **Build** - Package building and installation test
+
+See [`scripts/README.md`](scripts/README.md) for detailed documentation.
+
 ### Testing Framework
 - **Comprehensive Coverage**: 75+ tests covering all guard types and edge cases
 - **Guard Interface Testing**: Validates proper parameter structures and error handling
