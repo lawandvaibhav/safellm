@@ -16,31 +16,31 @@ class ToxicityGuard(BaseGuard):
     # Extended toxic patterns (in production, use ML-based toxicity detection)
     TOXIC_PATTERNS = {
         "threats": [
-            r'\b(?:kill|murder|hurt|harm|attack|destroy|eliminate)\s+(?:you|him|her|them|myself)\b',
-            r'\b(?:i|we|they)\s+(?:will|gonna|going to)\s+(?:kill|hurt|harm|attack)\b',
-            r'\b(?:death|violence|harm)\s+(?:threat|warning)\b',
+            r"\b(?:kill|murder|hurt|harm|attack|destroy|eliminate)\s+(?:you|him|her|them|myself)\b",
+            r"\b(?:i|we|they)\s+(?:will|gonna|going to)\s+(?:kill|hurt|harm|attack)\b",
+            r"\b(?:death|violence|harm)\s+(?:threat|warning)\b",
         ],
         "harassment": [
-            r'\b(?:stupid|idiot|moron|retard|loser|pathetic|worthless|useless)\b',
-            r'\b(?:shut up|go away|get lost|f\*ck off|piss off)\b',
-            r'\b(?:hate|despise|can\'t stand)\s+(?:you|people like you)\b',
+            r"\b(?:stupid|idiot|moron|retard|loser|pathetic|worthless|useless)\b",
+            r"\b(?:shut up|go away|get lost|f\*ck off|piss off)\b",
+            r"\b(?:hate|despise|can\'t stand)\s+(?:you|people like you)\b",
         ],
         "discrimination": [
-            r'\b(?:all|those|these)\s+(?:people|guys|women|men)\s+(?:are|should be)\s+(?:banned|eliminated|removed)\b',
-            r'\b(?:inferior|superior|better|worse)\s+(?:race|gender|religion|nationality)\b',
+            r"\b(?:all|those|these)\s+(?:people|guys|women|men)\s+(?:are|should be)\s+(?:banned|eliminated|removed)\b",
+            r"\b(?:inferior|superior|better|worse)\s+(?:race|gender|religion|nationality)\b",
         ],
         "self_harm": [
-            r'\b(?:kill|hurt|harm|cut|burn)\s+(?:myself|yourself)\b',
-            r'\b(?:suicide|self-harm|self harm|end it all)\b',
-            r'\b(?:want to die|wish i was dead|life is not worth)\b',
+            r"\b(?:kill|hurt|harm|cut|burn)\s+(?:myself|yourself)\b",
+            r"\b(?:suicide|self-harm|self harm|end it all)\b",
+            r"\b(?:want to die|wish i was dead|life is not worth)\b",
         ],
         "extremism": [
-            r'\b(?:terrorist|terrorism|bomb|explosive|weapon)\b',
-            r'\b(?:extremist|radical|jihad|crusade)\s+(?:attack|action|movement)\b',
+            r"\b(?:terrorist|terrorism|bomb|explosive|weapon)\b",
+            r"\b(?:extremist|radical|jihad|crusade)\s+(?:attack|action|movement)\b",
         ],
         "adult_content": [
-            r'\b(?:explicit|graphic|sexual|pornographic)\s+(?:content|material|image)\b',
-            r'\b(?:sex|sexual|nude|naked|porn)\b.*\b(?:minor|child|kid|underage)\b',
+            r"\b(?:explicit|graphic|sexual|pornographic)\s+(?:content|material|image)\b",
+            r"\b(?:sex|sexual|nude|naked|porn)\b.*\b(?:minor|child|kid|underage)\b",
         ],
     }
 
@@ -81,9 +81,7 @@ class ToxicityGuard(BaseGuard):
                 patterns.extend(custom_patterns[category])
 
             # Compile regex patterns
-            self.patterns[category] = [
-                re.compile(pattern, re.IGNORECASE) for pattern in patterns
-            ]
+            self.patterns[category] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
 
     @property
     def name(self) -> str:
@@ -150,14 +148,16 @@ class ToxicityGuard(BaseGuard):
             for pattern in patterns:
                 matches = list(pattern.finditer(text))
                 for match in matches:
-                    detections.append({
-                        "category": category,
-                        "pattern": pattern.pattern,
-                        "match": match.group(),
-                        "start": match.start(),
-                        "end": match.end(),
-                        "severity": self.SEVERITY_WEIGHTS.get(category, 0.5),
-                    })
+                    detections.append(
+                        {
+                            "category": category,
+                            "pattern": pattern.pattern,
+                            "match": match.group(),
+                            "start": match.start(),
+                            "end": match.end(),
+                            "severity": self.SEVERITY_WEIGHTS.get(category, 0.5),
+                        }
+                    )
 
         return detections
 

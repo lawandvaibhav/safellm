@@ -32,8 +32,7 @@ class LengthGuard(BaseGuard):
             raise ValueError("max_chars must be non-negative")
         if max_tokens is not None and max_tokens < 0:
             raise ValueError("max_tokens must be non-negative")
-        if (min_chars is not None and max_chars is not None and
-            min_chars > max_chars):
+        if min_chars is not None and max_chars is not None and min_chars > max_chars:
             raise ValueError("min_chars cannot be greater than max_chars")
 
         self.min_chars = min_chars

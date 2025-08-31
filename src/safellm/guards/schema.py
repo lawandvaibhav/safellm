@@ -74,13 +74,19 @@ class JsonSchemaGuard(SchemaGuard):
             error_details = []
 
             for error in errors:
-                path = " -> ".join(str(p) for p in error.absolute_path) if error.absolute_path else "root"
+                path = (
+                    " -> ".join(str(p) for p in error.absolute_path)
+                    if error.absolute_path
+                    else "root"
+                )
                 reasons.append(f"Schema validation failed at {path}: {error.message}")
-                error_details.append({
-                    "path": list(error.absolute_path),
-                    "message": error.message,
-                    "invalid_value": error.instance,
-                })
+                error_details.append(
+                    {
+                        "path": list(error.absolute_path),
+                        "message": error.message,
+                        "invalid_value": error.instance,
+                    }
+                )
 
             return Decision.deny(
                 data,
@@ -167,12 +173,14 @@ class PydanticSchemaGuard(SchemaGuard):
             for error in e.errors():
                 path = " -> ".join(str(p) for p in error["loc"]) if error["loc"] else "root"
                 reasons.append(f"Validation failed at {path}: {error['msg']}")
-                error_details.append({
-                    "path": list(error["loc"]),
-                    "message": error["msg"],
-                    "type": error["type"],
-                    "input": error.get("input"),
-                })
+                error_details.append(
+                    {
+                        "path": list(error["loc"]),
+                        "message": error["msg"],
+                        "type": error["type"],
+                        "input": error.get("input"),
+                    }
+                )
 
             return Decision.deny(
                 data,

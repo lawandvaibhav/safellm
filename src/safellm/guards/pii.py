@@ -57,7 +57,13 @@ class PiiRedactionGuard(BaseGuard):
 
         # Validate targets
         supported_targets = {
-            "email", "phone", "credit_card", "ssn", "ip_address", "iban", "address"
+            "email",
+            "phone",
+            "credit_card",
+            "ssn",
+            "ip_address",
+            "iban",
+            "address",
         }
         invalid_targets = set(self.targets) - supported_targets
         if invalid_targets:
@@ -159,12 +165,14 @@ class PiiRedactionGuard(BaseGuard):
             email = match.group()
             start, end = match.span()
 
-            detections.append({
-                "type": "email",
-                "original": email,
-                "start": start,
-                "end": end,
-            })
+            detections.append(
+                {
+                    "type": "email",
+                    "original": email,
+                    "start": start,
+                    "end": end,
+                }
+            )
 
             if self.mode == "mask":
                 replacement = mask_email(email)
@@ -185,12 +193,14 @@ class PiiRedactionGuard(BaseGuard):
                 phone = match.group()
                 start, end = match.span()
 
-                detections.append({
-                    "type": "phone",
-                    "original": phone,
-                    "start": start,
-                    "end": end,
-                })
+                detections.append(
+                    {
+                        "type": "phone",
+                        "original": phone,
+                        "start": start,
+                        "end": end,
+                    }
+                )
 
                 if self.mode == "mask":
                     replacement = mask_phone(phone)
@@ -213,12 +223,14 @@ class PiiRedactionGuard(BaseGuard):
 
                 # Validate with Luhn algorithm
                 if luhn_check(card):
-                    detections.append({
-                        "type": "credit_card",
-                        "original": card,
-                        "start": start,
-                        "end": end,
-                    })
+                    detections.append(
+                        {
+                            "type": "credit_card",
+                            "original": card,
+                            "start": start,
+                            "end": end,
+                        }
+                    )
 
                     if self.mode == "mask":
                         replacement = mask_credit_card(card)
@@ -238,12 +250,14 @@ class PiiRedactionGuard(BaseGuard):
             ssn = match.group()
             start, end = match.span()
 
-            detections.append({
-                "type": "ssn",
-                "original": ssn,
-                "start": start,
-                "end": end,
-            })
+            detections.append(
+                {
+                    "type": "ssn",
+                    "original": ssn,
+                    "start": start,
+                    "end": end,
+                }
+            )
 
             if self.mode == "mask":
                 replacement = mask_text(ssn, 3, 2)
@@ -264,12 +278,14 @@ class PiiRedactionGuard(BaseGuard):
                 ip = match.group()
                 start, end = match.span()
 
-                detections.append({
-                    "type": "ip_address",
-                    "original": ip,
-                    "start": start,
-                    "end": end,
-                })
+                detections.append(
+                    {
+                        "type": "ip_address",
+                        "original": ip,
+                        "start": start,
+                        "end": end,
+                    }
+                )
 
                 if self.mode == "mask":
                     replacement = mask_text(ip, 2, 2)
@@ -289,12 +305,14 @@ class PiiRedactionGuard(BaseGuard):
             iban = match.group()
             start, end = match.span()
 
-            detections.append({
-                "type": "iban",
-                "original": iban,
-                "start": start,
-                "end": end,
-            })
+            detections.append(
+                {
+                    "type": "iban",
+                    "original": iban,
+                    "start": start,
+                    "end": end,
+                }
+            )
 
             if self.mode == "mask":
                 replacement = mask_text(iban, 4, 4)
@@ -315,12 +333,14 @@ class PiiRedactionGuard(BaseGuard):
                 address = match.group()
                 start, end = match.span()
 
-                detections.append({
-                    "type": "address",
-                    "original": address,
-                    "start": start,
-                    "end": end,
-                })
+                detections.append(
+                    {
+                        "type": "address",
+                        "original": address,
+                        "start": start,
+                        "end": end,
+                    }
+                )
 
                 if self.mode == "mask":
                     replacement = mask_text(address, 2, 2)
@@ -342,12 +362,14 @@ class PiiRedactionGuard(BaseGuard):
             matched_text = match.group()
             start, end = match.span()
 
-            detections.append({
-                "type": pii_type,
-                "original": matched_text,
-                "start": start,
-                "end": end,
-            })
+            detections.append(
+                {
+                    "type": pii_type,
+                    "original": matched_text,
+                    "start": start,
+                    "end": end,
+                }
+            )
 
             if self.mode == "mask":
                 replacement = mask_text(matched_text)

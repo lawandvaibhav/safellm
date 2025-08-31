@@ -16,36 +16,36 @@ class PrivacyComplianceGuard(BaseGuard):
     # Privacy-sensitive data patterns
     PRIVACY_PATTERNS = {
         "medical": [
-            r'\b(?:diagnosed|diagnosis|treatment|medication|prescription|therapy|surgery|hospital|clinic|doctor|physician|patient)\b',
-            r'\b(?:medical|health|illness|disease|condition|symptom|drug|medicine)\s+(?:record|history|information|data)\b',
-            r'\b(?:HIV|AIDS|cancer|diabetes|depression|anxiety|bipolar|schizophrenia|addiction)\b',
+            r"\b(?:diagnosed|diagnosis|treatment|medication|prescription|therapy|surgery|hospital|clinic|doctor|physician|patient)\b",
+            r"\b(?:medical|health|illness|disease|condition|symptom|drug|medicine)\s+(?:record|history|information|data)\b",
+            r"\b(?:HIV|AIDS|cancer|diabetes|depression|anxiety|bipolar|schizophrenia|addiction)\b",
         ],
         "financial": [
-            r'\b(?:income|salary|wage|earnings|debt|loan|mortgage|credit|banking|investment|account|balance)\b',
-            r'\b(?:financial|economic|monetary)\s+(?:status|situation|condition|information|data|record)\b',
-            r'\b(?:tax|IRS|revenue|audit|bankruptcy|foreclosure)\b',
+            r"\b(?:income|salary|wage|earnings|debt|loan|mortgage|credit|banking|investment|account|balance)\b",
+            r"\b(?:financial|economic|monetary)\s+(?:status|situation|condition|information|data|record)\b",
+            r"\b(?:tax|IRS|revenue|audit|bankruptcy|foreclosure)\b",
         ],
         "biometric": [
-            r'\b(?:fingerprint|facial recognition|retina|iris|voice print|DNA|genetic|biometric)\b',
-            r'\b(?:scan|scanning|recognition|identification|biometric)\s+(?:data|information|system)\b',
+            r"\b(?:fingerprint|facial recognition|retina|iris|voice print|DNA|genetic|biometric)\b",
+            r"\b(?:scan|scanning|recognition|identification|biometric)\s+(?:data|information|system)\b",
         ],
         "location": [
-            r'\b(?:home address|work address|current location|GPS|coordinates|tracking)\b',
-            r'\b(?:lives at|resides at|located at|address is|can be found at)\b',
-            r'\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd)\b',
+            r"\b(?:home address|work address|current location|GPS|coordinates|tracking)\b",
+            r"\b(?:lives at|resides at|located at|address is|can be found at)\b",
+            r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd)\b",
         ],
         "personal_identifiers": [
-            r'\b(?:social security|SSN|driver\'s license|passport|ID number|employee ID)\b',
-            r'\b(?:date of birth|DOB|age|born on|birthday)\b',
-            r'\b(?:mother\'s maiden name|security question|password|PIN)\b',
+            r"\b(?:social security|SSN|driver\'s license|passport|ID number|employee ID)\b",
+            r"\b(?:date of birth|DOB|age|born on|birthday)\b",
+            r"\b(?:mother\'s maiden name|security question|password|PIN)\b",
         ],
         "communication": [
-            r'\b(?:private message|personal email|phone conversation|text message|chat log)\b',
-            r'\b(?:confidential|private|personal|sensitive)\s+(?:communication|correspondence|message)\b',
+            r"\b(?:private message|personal email|phone conversation|text message|chat log)\b",
+            r"\b(?:confidential|private|personal|sensitive)\s+(?:communication|correspondence|message)\b",
         ],
         "minors": [
-            r'\b(?:child|kid|minor|under 18|underage|juvenile|teenager|adolescent)\b.*\b(?:personal|private|sensitive)\s+(?:information|data)\b',
-            r'\b(?:school|educational)\s+(?:record|information|data)\b.*\b(?:child|student|minor)\b',
+            r"\b(?:child|kid|minor|under 18|underage|juvenile|teenager|adolescent)\b.*\b(?:personal|private|sensitive)\s+(?:information|data)\b",
+            r"\b(?:school|educational)\s+(?:record|information|data)\b.*\b(?:child|student|minor)\b",
         ],
     }
 
@@ -178,14 +178,16 @@ class PrivacyComplianceGuard(BaseGuard):
             for pattern in patterns:
                 matches = list(pattern.finditer(text))
                 for match in matches:
-                    detections.append({
-                        "category": category,
-                        "pattern": pattern.pattern,
-                        "match": match.group(),
-                        "start": match.start(),
-                        "end": match.end(),
-                        "context": text[max(0, match.start() - 20):match.end() + 20],
-                    })
+                    detections.append(
+                        {
+                            "category": category,
+                            "pattern": pattern.pattern,
+                            "match": match.group(),
+                            "start": match.start(),
+                            "end": match.end(),
+                            "context": text[max(0, match.start() - 20) : match.end() + 20],
+                        }
+                    )
 
         return detections
 

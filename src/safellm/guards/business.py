@@ -44,14 +44,16 @@ class BusinessRulesGuard(BaseGuard):
         for rule in self.rules:
             try:
                 result = self._evaluate_rule(rule, data, ctx)
-                rule_results.append({
-                    "rule_id": rule["id"],
-                    "rule_name": rule["name"],
-                    "passed": result["passed"],
-                    "value": result.get("value"),
-                    "message": result.get("message"),
-                    "details": result.get("details", {}),
-                })
+                rule_results.append(
+                    {
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "passed": result["passed"],
+                        "value": result.get("value"),
+                        "message": result.get("message"),
+                        "details": result.get("details", {}),
+                    }
+                )
 
                 if result["passed"]:
                     passed_rules.append(rule["id"])
@@ -59,13 +61,15 @@ class BusinessRulesGuard(BaseGuard):
                     failed_rules.append(rule["id"])
 
             except Exception as e:
-                rule_results.append({
-                    "rule_id": rule["id"],
-                    "rule_name": rule["name"],
-                    "passed": False,
-                    "error": str(e),
-                    "exception_type": type(e).__name__,
-                })
+                rule_results.append(
+                    {
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "passed": False,
+                        "error": str(e),
+                        "exception_type": type(e).__name__,
+                    }
+                )
                 failed_rules.append(rule["id"])
 
         # Determine overall result
@@ -88,7 +92,9 @@ class BusinessRulesGuard(BaseGuard):
         if not overall_passed:
             failed_rule_names = [r["rule_name"] for r in rule_results if not r["passed"]]
             reasons = [f"Business rule violation: {len(failed_rules)} rule(s) failed"]
-            reasons.extend([f"Failed: {name}" for name in failed_rule_names[:3]])  # Limit to first 3
+            reasons.extend(
+                [f"Failed: {name}" for name in failed_rule_names[:3]]
+            )  # Limit to first 3
 
             if len(failed_rule_names) > 3:
                 reasons.append(f"... and {len(failed_rule_names) - 3} more")
@@ -194,19 +200,25 @@ class BusinessRulesGuard(BaseGuard):
         """Validate length rule configuration."""
         config = rule["config"]
         if "min_length" not in config and "max_length" not in config:
-            raise ValueError(f"Length rule '{rule['id']}' must specify min_length and/or max_length")
+            raise ValueError(
+                f"Length rule '{rule['id']}' must specify min_length and/or max_length"
+            )
 
     def _validate_time_window_rule(self, rule: dict[str, Any]) -> None:
         """Validate time window rule configuration."""
         config = rule["config"]
         if "start_time" not in config or "end_time" not in config:
-            raise ValueError(f"Time window rule '{rule['id']}' must specify start_time and end_time")
+            raise ValueError(
+                f"Time window rule '{rule['id']}' must specify start_time and end_time"
+            )
 
     def _validate_value_list_rule(self, rule: dict[str, Any]) -> None:
         """Validate value list rule configuration."""
         config = rule["config"]
         if "allowed_values" not in config and "forbidden_values" not in config:
-            raise ValueError(f"Value list rule '{rule['id']}' must specify allowed_values or forbidden_values")
+            raise ValueError(
+                f"Value list rule '{rule['id']}' must specify allowed_values or forbidden_values"
+            )
 
     def _validate_custom_rule(self, rule: dict[str, Any], original_rule: dict[str, Any]) -> None:
         """Validate custom rule configuration."""
@@ -296,11 +308,13 @@ class BusinessRulesGuard(BaseGuard):
             }
 
             if match:
-                details.update({
-                    "match_text": match.group(),
-                    "match_start": match.start(),
-                    "match_end": match.end(),
-                })
+                details.update(
+                    {
+                        "match_text": match.group(),
+                        "match_start": match.start(),
+                        "match_end": match.end(),
+                    }
+                )
 
             return {
                 "passed": passed,
@@ -336,10 +350,16 @@ class BusinessRulesGuard(BaseGuard):
         return {
             "passed": True,
             "message": f"Length {length} is within bounds",
-            "details": {"min_length": min_length, "max_length": max_length, "actual_length": length},
+            "details": {
+                "min_length": min_length,
+                "max_length": max_length,
+                "actual_length": length,
+            },
         }
 
-    def _evaluate_time_window_rule(self, config: dict[str, Any], data: Any, ctx: Context) -> dict[str, Any]:
+    def _evaluate_time_window_rule(
+        self, config: dict[str, Any], data: Any, ctx: Context
+    ) -> dict[str, Any]:
         """Evaluate time window rule."""
         current_time = ctx.timestamp or datetime.utcnow()
 
@@ -348,9 +368,9 @@ class BusinessRulesGuard(BaseGuard):
 
         # Parse time strings if needed
         if isinstance(start_time, str):
-            start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            start_time = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
         if isinstance(end_time, str):
-            end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            end_time = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
 
         in_window = start_time <= current_time <= end_time
 
@@ -403,7 +423,9 @@ class BusinessRulesGuard(BaseGuard):
             "details": details,
         }
 
-    def _evaluate_custom_rule(self, rule: dict[str, Any], data: Any, ctx: Context) -> dict[str, Any]:
+    def _evaluate_custom_rule(
+        self, rule: dict[str, Any], data: Any, ctx: Context
+    ) -> dict[str, Any]:
         """Evaluate custom rule."""
         try:
             validator = rule["validator"]

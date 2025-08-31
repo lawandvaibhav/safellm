@@ -27,7 +27,7 @@ class TestContext:
             purpose="content_generation",
             trace_id="trace-123",
             seed=42,
-            metadata={"key": "value"}
+            metadata={"key": "value"},
         )
 
         assert ctx.audit_id == "test-audit"
@@ -40,11 +40,7 @@ class TestContext:
 
     def test_copy_no_overrides(self):
         """Test copying a context without overrides."""
-        original = Context(
-            audit_id="original-audit",
-            model="gpt-3.5",
-            metadata={"original": True}
-        )
+        original = Context(audit_id="original-audit", model="gpt-3.5", metadata={"original": True})
 
         copy = original.copy()
 
@@ -59,13 +55,10 @@ class TestContext:
             audit_id="original-audit",
             model="gpt-3.5",
             user_role="user",
-            metadata={"original": True}
+            metadata={"original": True},
         )
 
-        copy = original.copy(
-            model="gpt-4",
-            metadata={"new": True}
-        )
+        copy = original.copy(model="gpt-4", metadata={"new": True})
 
         assert copy.audit_id == original.audit_id  # Not overridden
         assert copy.model == "gpt-4"  # Overridden
@@ -82,12 +75,7 @@ class TestContext:
 
     def test_repr(self):
         """Test the string representation of Context."""
-        ctx = Context(
-            audit_id="test-audit",
-            model="gpt-4",
-            user_role="admin",
-            purpose="test"
-        )
+        ctx = Context(audit_id="test-audit", model="gpt-4", user_role="admin", purpose="test")
 
         repr_str = repr(ctx)
         assert "Context(" in repr_str

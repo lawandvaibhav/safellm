@@ -15,18 +15,18 @@ class LanguageGuard(BaseGuard):
 
     # Basic language detection patterns (in production, use proper language detection library)
     LANGUAGE_PATTERNS = {
-        "english": re.compile(r'\b(?:the|and|or|but|in|on|at|to|for|of|with|by)\b', re.IGNORECASE),
-        "spanish": re.compile(r'\b(?:el|la|los|las|y|o|pero|en|de|con|por|para)\b', re.IGNORECASE),
-        "french": re.compile(r'\b(?:le|la|les|et|ou|mais|dans|de|avec|par|pour)\b', re.IGNORECASE),
-        "german": re.compile(r'\b(?:der|die|das|und|oder|aber|in|von|mit|zu|für)\b', re.IGNORECASE),
-        "italian": re.compile(r'\b(?:il|la|gli|le|e|o|ma|in|di|con|per|da)\b', re.IGNORECASE),
-        "portuguese": re.compile(r'\b(?:o|a|os|as|e|ou|mas|em|de|com|por|para)\b', re.IGNORECASE),
-        "russian": re.compile(r'[а-яё]+', re.IGNORECASE),
-        "chinese": re.compile(r'[\u4e00-\u9fff]+'),
-        "japanese": re.compile(r'[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff]+'),
-        "korean": re.compile(r'[\uac00-\ud7af]+'),
-        "arabic": re.compile(r'[\u0600-\u06ff]+'),
-        "hindi": re.compile(r'[\u0900-\u097f]+'),
+        "english": re.compile(r"\b(?:the|and|or|but|in|on|at|to|for|of|with|by)\b", re.IGNORECASE),
+        "spanish": re.compile(r"\b(?:el|la|los|las|y|o|pero|en|de|con|por|para)\b", re.IGNORECASE),
+        "french": re.compile(r"\b(?:le|la|les|et|ou|mais|dans|de|avec|par|pour)\b", re.IGNORECASE),
+        "german": re.compile(r"\b(?:der|die|das|und|oder|aber|in|von|mit|zu|für)\b", re.IGNORECASE),
+        "italian": re.compile(r"\b(?:il|la|gli|le|e|o|ma|in|di|con|per|da)\b", re.IGNORECASE),
+        "portuguese": re.compile(r"\b(?:o|a|os|as|e|ou|mas|em|de|com|por|para)\b", re.IGNORECASE),
+        "russian": re.compile(r"[а-яё]+", re.IGNORECASE),
+        "chinese": re.compile(r"[\u4e00-\u9fff]+"),
+        "japanese": re.compile(r"[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff]+"),
+        "korean": re.compile(r"[\uac00-\ud7af]+"),
+        "arabic": re.compile(r"[\u0600-\u06ff]+"),
+        "hindi": re.compile(r"[\u0900-\u097f]+"),
     }
 
     def __init__(
@@ -120,12 +120,14 @@ class LanguageGuard(BaseGuard):
                 confidence = min(1.0, match_chars / max(1, text_length * 0.1))
 
                 if confidence > 0.1:  # Only include if there's some evidence
-                    results.append({
-                        "language": language,
-                        "confidence": confidence,
-                        "matches": len(matches),
-                        "match_examples": matches[:3],  # First 3 matches as examples
-                    })
+                    results.append(
+                        {
+                            "language": language,
+                            "confidence": confidence,
+                            "matches": len(matches),
+                            "match_examples": matches[:3],  # First 3 matches as examples
+                        }
+                    )
 
         # Sort by confidence descending
         results.sort(key=lambda x: x["confidence"], reverse=True)

@@ -67,11 +67,13 @@ class SimilarityGuard(BaseGuard):
         if content_hash in self.content_hashes:
             previous_info = self.content_hashes[content_hash]
             reasons = ["Exact duplicate content detected"]
-            evidence.update({
-                "duplicate_type": "exact",
-                "previous_audit_id": previous_info.get("audit_id"),
-                "previous_timestamp": previous_info.get("timestamp"),
-            })
+            evidence.update(
+                {
+                    "duplicate_type": "exact",
+                    "previous_audit_id": previous_info.get("audit_id"),
+                    "previous_timestamp": previous_info.get("timestamp"),
+                }
+            )
 
             return self._handle_similarity_detection(data, reasons, evidence, ctx)
 
@@ -82,12 +84,14 @@ class SimilarityGuard(BaseGuard):
                 similarity_score = similar_content["similarity"]
                 if similarity_score >= self.similarity_threshold:
                     reasons = [f"Similar content detected (similarity: {similarity_score:.2f})"]
-                    evidence.update({
-                        "duplicate_type": "fuzzy",
-                        "similarity_score": similarity_score,
-                        "similar_hash": similar_content["hash"],
-                        "similar_audit_id": similar_content.get("audit_id"),
-                    })
+                    evidence.update(
+                        {
+                            "duplicate_type": "fuzzy",
+                            "similarity_score": similarity_score,
+                            "similar_hash": similar_content["hash"],
+                            "similar_audit_id": similar_content.get("audit_id"),
+                        }
+                    )
 
                     result = self._handle_similarity_detection(data, reasons, evidence, ctx)
                     # Still store this content even if similar
@@ -109,20 +113,39 @@ class SimilarityGuard(BaseGuard):
         normalized = text.lower()
 
         # Remove extra whitespace
-        normalized = re.sub(r'\s+', ' ', normalized)
+        normalized = re.sub(r"\s+", " ", normalized)
 
         # Remove punctuation (keep alphanumeric and spaces)
-        normalized = re.sub(r'[^a-z0-9\s]', '', normalized)
+        normalized = re.sub(r"[^a-z0-9\s]", "", normalized)
 
         # Remove common stop words for better similarity detection
         stop_words = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-            'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being'
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "being",
         }
         words = normalized.split()
         filtered_words = [word for word in words if word not in stop_words]
 
-        return ' '.join(filtered_words).strip()
+        return " ".join(filtered_words).strip()
 
     def _find_similar_content(self, normalized_text: str) -> dict[str, Any] | None:
         """Find similar content using simple text similarity."""
@@ -167,7 +190,9 @@ class SimilarityGuard(BaseGuard):
 
         return intersection / union if union > 0 else 0.0
 
-    def _store_content(self, content_hash: str, normalized_hash: str, normalized_text: str, ctx: Context) -> None:
+    def _store_content(
+        self, content_hash: str, normalized_hash: str, normalized_text: str, ctx: Context
+    ) -> None:
         """Store content for future comparison."""
         import time
 

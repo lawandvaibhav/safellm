@@ -72,10 +72,9 @@ class SecretMaskGuard(BaseGuard):
         # Process custom patterns
         for name, pattern_str in self.custom_patterns:
             import re
+
             pattern = re.compile(pattern_str)
-            masked_text, custom_detections = self._process_pattern(
-                masked_text, pattern, name
-            )
+            masked_text, custom_detections = self._process_pattern(masked_text, pattern, name)
             detections.extend(custom_detections)
 
         # Prepare result
@@ -126,13 +125,15 @@ class SecretMaskGuard(BaseGuard):
                 # Determine the vendor type
                 vendor_type = self._identify_vendor(key)
 
-                detections.append({
-                    "type": "api_key",
-                    "vendor": vendor_type,
-                    "original": key,
-                    "start": start,
-                    "end": end,
-                })
+                detections.append(
+                    {
+                        "type": "api_key",
+                        "vendor": vendor_type,
+                        "original": key,
+                        "start": start,
+                        "end": end,
+                    }
+                )
 
                 masked_key = mask_api_key(key)
                 result = result.replace(key, masked_key, 1)
@@ -148,12 +149,14 @@ class SecretMaskGuard(BaseGuard):
             token = match.group()
             start, end = match.span()
 
-            detections.append({
-                "type": "jwt_token",
-                "original": token,
-                "start": start,
-                "end": end,
-            })
+            detections.append(
+                {
+                    "type": "jwt_token",
+                    "original": token,
+                    "start": start,
+                    "end": end,
+                }
+            )
 
             # Mask the JWT (keep header visible, mask payload and signature)
             parts = token.split(".")
@@ -177,13 +180,15 @@ class SecretMaskGuard(BaseGuard):
             start, end = match.span()
 
             if password and len(password) > 2:  # Avoid false positives
-                detections.append({
-                    "type": "password",
-                    "original": password,
-                    "full_match": full_match,
-                    "start": start,
-                    "end": end,
-                })
+                detections.append(
+                    {
+                        "type": "password",
+                        "original": password,
+                        "full_match": full_match,
+                        "start": start,
+                        "end": end,
+                    }
+                )
 
                 # Replace the password part with asterisks
                 masked_password = "*" * min(8, len(password))
@@ -203,12 +208,14 @@ class SecretMaskGuard(BaseGuard):
             secret = match.group()
             start, end = match.span()
 
-            detections.append({
-                "type": secret_type,
-                "original": secret,
-                "start": start,
-                "end": end,
-            })
+            detections.append(
+                {
+                    "type": secret_type,
+                    "original": secret,
+                    "start": start,
+                    "end": end,
+                }
+            )
 
             masked_secret = mask_api_key(secret)
             result = result.replace(secret, masked_secret, 1)

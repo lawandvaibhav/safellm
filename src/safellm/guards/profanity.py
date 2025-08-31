@@ -95,7 +95,7 @@ class ProfanityGuard(BaseGuard):
         # Check each word
         for i, word in enumerate(words):
             # Remove punctuation for checking
-            clean_word = ''.join(c for c in word if c.isalnum())
+            clean_word = "".join(c for c in word if c.isalnum())
 
             if self._is_profanity(clean_word):
                 # Find the original word position in the text
@@ -104,13 +104,15 @@ class ProfanityGuard(BaseGuard):
                     original_word = original_words[i]
                     start_pos = text.find(original_word)
 
-                    detections.append({
-                        "word": original_word,
-                        "normalized": clean_word,
-                        "position": i,
-                        "start": start_pos,
-                        "end": start_pos + len(original_word),
-                    })
+                    detections.append(
+                        {
+                            "word": original_word,
+                            "normalized": clean_word,
+                            "position": i,
+                            "start": start_pos,
+                            "end": start_pos + len(original_word),
+                        }
+                    )
 
         return detections
 

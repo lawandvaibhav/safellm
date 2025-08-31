@@ -18,14 +18,31 @@ class HtmlSanitizerGuard(BaseGuard):
 
     # Default safe tags and attributes
     DEFAULT_TAGS = [
-        'p', 'br', 'strong', 'em', 'u', 'b', 'i', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'ul', 'ol', 'li', 'blockquote', 'code', 'pre'
+        "p",
+        "br",
+        "strong",
+        "em",
+        "u",
+        "b",
+        "i",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "ul",
+        "ol",
+        "li",
+        "blockquote",
+        "code",
+        "pre",
     ]
 
     DEFAULT_ATTRIBUTES = {
-        '*': ['class', 'id'],
-        'a': ['href', 'title'],
-        'img': ['src', 'alt', 'title', 'width', 'height'],
+        "*": ["class", "id"],
+        "a": ["href", "title"],
+        "img": ["src", "alt", "title", "width", "height"],
     }
 
     def __init__(
@@ -47,7 +64,7 @@ class HtmlSanitizerGuard(BaseGuard):
         self.strip_comments = strip_comments
 
         if policy == "strict":
-            self.allowed_tags = ['p', 'br', 'strong', 'em']
+            self.allowed_tags = ["p", "br", "strong", "em"]
             self.allowed_attributes = {}
         elif policy == "moderate":
             self.allowed_tags = self.DEFAULT_TAGS
@@ -62,6 +79,7 @@ class HtmlSanitizerGuard(BaseGuard):
         self._has_bleach = False
         try:
             import bleach  # noqa: F401
+
             self._has_bleach = True
         except ImportError:
             pass
@@ -116,7 +134,7 @@ class HtmlSanitizerGuard(BaseGuard):
 
     def _contains_html(self, text: str) -> bool:
         """Check if text contains HTML tags."""
-        html_pattern = re.compile(r'<[^>]+>')
+        html_pattern = re.compile(r"<[^>]+>")
         return bool(html_pattern.search(text))
 
     def _sanitize_html(self, text: str) -> tuple[str, list[dict[str, Any]]]:
@@ -150,18 +168,22 @@ class HtmlSanitizerGuard(BaseGuard):
         removed_tags = original_tags - sanitized_tags
 
         if removed_tags:
-            issues.append({
-                "type": "removed_tags",
-                "tags": list(removed_tags),
-                "count": len(removed_tags),
-            })
+            issues.append(
+                {
+                    "type": "removed_tags",
+                    "tags": list(removed_tags),
+                    "count": len(removed_tags),
+                }
+            )
 
         if len(sanitized) != len(text):
-            issues.append({
-                "type": "content_modified",
-                "original_length": len(text),
-                "sanitized_length": len(sanitized),
-            })
+            issues.append(
+                {
+                    "type": "content_modified",
+                    "original_length": len(text),
+                    "sanitized_length": len(sanitized),
+                }
+            )
 
         return sanitized, issues
 
@@ -171,47 +193,55 @@ class HtmlSanitizerGuard(BaseGuard):
         result = text
 
         # Remove all script and style tags
-        script_pattern = re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL)
-        style_pattern = re.compile(r'<style[^>]*>.*?</style>', re.IGNORECASE | re.DOTALL)
+        script_pattern = re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
+        style_pattern = re.compile(r"<style[^>]*>.*?</style>", re.IGNORECASE | re.DOTALL)
 
         scripts_found = script_pattern.findall(result)
         styles_found = style_pattern.findall(result)
 
         if scripts_found:
-            issues.append({
-                "type": "removed_scripts",
-                "count": len(scripts_found),
-            })
-            result = script_pattern.sub('', result)
+            issues.append(
+                {
+                    "type": "removed_scripts",
+                    "count": len(scripts_found),
+                }
+            )
+            result = script_pattern.sub("", result)
 
         if styles_found:
-            issues.append({
-                "type": "removed_styles",
-                "count": len(styles_found),
-            })
-            result = style_pattern.sub('', result)
+            issues.append(
+                {
+                    "type": "removed_styles",
+                    "count": len(styles_found),
+                }
+            )
+            result = style_pattern.sub("", result)
 
         # Remove dangerous attributes
-        dangerous_attrs = ['onclick', 'onload', 'onmouseover', 'onerror', 'javascript:']
+        dangerous_attrs = ["onclick", "onload", "onmouseover", "onerror", "javascript:"]
         for attr in dangerous_attrs:
-            pattern = re.compile(f'{attr}[^>]*', re.IGNORECASE)
+            pattern = re.compile(f"{attr}[^>]*", re.IGNORECASE)
             if pattern.search(result):
-                issues.append({
-                    "type": "removed_dangerous_attribute",
-                    "attribute": attr,
-                })
-                result = pattern.sub('', result)
+                issues.append(
+                    {
+                        "type": "removed_dangerous_attribute",
+                        "attribute": attr,
+                    }
+                )
+                result = pattern.sub("", result)
 
         # Remove comments if requested
         if self.strip_comments:
-            comment_pattern = re.compile(r'<!--.*?-->', re.DOTALL)
+            comment_pattern = re.compile(r"<!--.*?-->", re.DOTALL)
             comments_found = comment_pattern.findall(result)
             if comments_found:
-                issues.append({
-                    "type": "removed_comments",
-                    "count": len(comments_found),
-                })
-                result = comment_pattern.sub('', result)
+                issues.append(
+                    {
+                        "type": "removed_comments",
+                        "count": len(comments_found),
+                    }
+                )
+                result = comment_pattern.sub("", result)
 
         # If strict policy, remove all tags except allowed ones
         if self.policy == "strict":
@@ -220,19 +250,21 @@ class HtmlSanitizerGuard(BaseGuard):
 
             for tag in disallowed_tags:
                 # Remove opening and closing tags
-                tag_pattern = re.compile(f'</?{re.escape(tag)}[^>]*>', re.IGNORECASE)
+                tag_pattern = re.compile(f"</?{re.escape(tag)}[^>]*>", re.IGNORECASE)
                 if tag_pattern.search(result):
-                    issues.append({
-                        "type": "removed_disallowed_tag",
-                        "tag": tag,
-                    })
-                    result = tag_pattern.sub('', result)
+                    issues.append(
+                        {
+                            "type": "removed_disallowed_tag",
+                            "tag": tag,
+                        }
+                    )
+                    result = tag_pattern.sub("", result)
 
         return result, issues
 
     def _extract_tags(self, text: str) -> set[str]:
         """Extract all HTML tag names from text."""
-        tag_pattern = re.compile(r'</?([a-zA-Z][a-zA-Z0-9]*)[^>]*>')
+        tag_pattern = re.compile(r"</?([a-zA-Z][a-zA-Z0-9]*)[^>]*>")
         return {match.group(1).lower() for match in tag_pattern.finditer(text)}
 
 
@@ -297,34 +329,40 @@ class MarkdownSanitizerGuard(BaseGuard):
 
         # Remove potentially dangerous Markdown patterns
         # 1. Javascript links
-        js_link_pattern = re.compile(r'\[([^\]]+)\]\s*\(\s*javascript:[^)]+\)', re.IGNORECASE)
+        js_link_pattern = re.compile(r"\[([^\]]+)\]\s*\(\s*javascript:[^)]+\)", re.IGNORECASE)
         js_links = js_link_pattern.findall(result)
         if js_links:
-            issues.append({
-                "type": "removed_javascript_links",
-                "count": len(js_links),
-            })
-            result = js_link_pattern.sub(r'[\1](javascript-removed)', result)
+            issues.append(
+                {
+                    "type": "removed_javascript_links",
+                    "count": len(js_links),
+                }
+            )
+            result = js_link_pattern.sub(r"[\1](javascript-removed)", result)
 
         # 2. Data URLs that might contain scripts
-        data_url_pattern = re.compile(r'\[([^\]]+)\]\s*\(\s*data:[^)]+\)', re.IGNORECASE)
+        data_url_pattern = re.compile(r"\[([^\]]+)\]\s*\(\s*data:[^)]+\)", re.IGNORECASE)
         data_urls = data_url_pattern.findall(result)
         if data_urls:
-            issues.append({
-                "type": "removed_data_urls",
-                "count": len(data_urls),
-            })
-            result = data_url_pattern.sub(r'[\1](data-url-removed)', result)
+            issues.append(
+                {
+                    "type": "removed_data_urls",
+                    "count": len(data_urls),
+                }
+            )
+            result = data_url_pattern.sub(r"[\1](data-url-removed)", result)
 
         # 3. If HTML is not allowed, remove HTML tags
         if not self.allow_html:
-            html_pattern = re.compile(r'<[^>]+>')
+            html_pattern = re.compile(r"<[^>]+>")
             html_tags = html_pattern.findall(result)
             if html_tags:
-                issues.append({
-                    "type": "removed_html_tags",
-                    "count": len(html_tags),
-                })
-                result = html_pattern.sub('', result)
+                issues.append(
+                    {
+                        "type": "removed_html_tags",
+                        "count": len(html_tags),
+                    }
+                )
+                result = html_pattern.sub("", result)
 
         return result, issues

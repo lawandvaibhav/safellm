@@ -17,6 +17,7 @@ class Decision(NamedTuple):
         output: The original or transformed data
         audit_id: Unique identifier for correlating with logs and traces
     """
+
     allowed: bool
     action: Literal["allow", "deny", "transform", "retry"]
     reasons: list[str]

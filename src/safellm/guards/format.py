@@ -16,7 +16,9 @@ class FormatGuard(BaseGuard):
 
     def __init__(
         self,
-        format_type: Literal["json", "email", "url", "phone", "credit_card", "ipv4", "ipv6", "uuid", "custom"],
+        format_type: Literal[
+            "json", "email", "url", "phone", "credit_card", "ipv4", "ipv6", "uuid", "custom"
+        ],
         pattern: str | None = None,
         action: Literal["block", "flag", "transform"] = "block",
         strict: bool = True,
@@ -180,20 +182,22 @@ class FormatGuard(BaseGuard):
         """Validate email format."""
         if self.strict:
             # RFC 5322 compliant pattern (simplified)
-            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         else:
             # Basic email pattern
-            pattern = r'^[^@\s]+@[^@\s]+\.[^@\s]+$'
+            pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
         is_valid = bool(re.match(pattern, text))
         details = {"strict_mode": self.strict}
 
         if is_valid:
-            parts = text.split('@')
-            details.update({
-                "local_part": parts[0],
-                "domain": parts[1],
-            })
+            parts = text.split("@")
+            details.update(
+                {
+                    "local_part": parts[0],
+                    "domain": parts[1],
+                }
+            )
         else:
             details["error"] = "Invalid email format"
 
@@ -203,24 +207,26 @@ class FormatGuard(BaseGuard):
         """Validate URL format."""
         if self.strict:
             # Strict URL pattern with protocol
-            pattern = r'^https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:[\w.])*)?)?$'
+            pattern = r"^https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:[\w.])*)?)?$"
         else:
             # Basic URL pattern
-            pattern = r'^https?://\S+$'
+            pattern = r"^https?://\S+$"
 
         is_valid = bool(re.match(pattern, text))
         details = {"strict_mode": self.strict}
 
         if is_valid:
             # Extract URL components
-            match = re.match(r'^(https?)://([^:/]+)(?::(\d+))?(/.*)?$', text)
+            match = re.match(r"^(https?)://([^:/]+)(?::(\d+))?(/.*)?$", text)
             if match:
-                details.update({
-                    "scheme": match.group(1),
-                    "host": match.group(2),
-                    "port": match.group(3),
-                    "path": match.group(4) or "/",
-                })
+                details.update(
+                    {
+                        "scheme": match.group(1),
+                        "host": match.group(2),
+                        "port": match.group(3),
+                        "path": match.group(4) or "/",
+                    }
+                )
         else:
             details["error"] = "Invalid URL format"
 
@@ -229,14 +235,14 @@ class FormatGuard(BaseGuard):
     def _validate_phone(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate phone number format."""
         # Remove common separators
-        cleaned = re.sub(r'[\s\-\(\)\.]', '', text)
+        cleaned = re.sub(r"[\s\-\(\)\.]", "", text)
 
         if self.strict:
             # E.164 format: +1234567890
-            pattern = r'^\+\d{1,3}\d{4,14}$'
+            pattern = r"^\+\d{1,3}\d{4,14}$"
         else:
             # US format or international
-            pattern = r'^(?:\+?1)?[2-9]\d{2}[2-9]\d{2}\d{4}$|^\+\d{1,3}\d{4,14}$'
+            pattern = r"^(?:\+?1)?[2-9]\d{2}[2-9]\d{2}\d{4}$|^\+\d{1,3}\d{4,14}$"
 
         is_valid = bool(re.match(pattern, cleaned))
         details = {
@@ -253,10 +259,10 @@ class FormatGuard(BaseGuard):
     def _validate_credit_card(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate credit card format."""
         # Remove spaces and dashes
-        cleaned = re.sub(r'[\s\-]', '', text)
+        cleaned = re.sub(r"[\s\-]", "", text)
 
         # Basic pattern: 13-19 digits
-        if not re.match(r'^\d{13,19}$', cleaned):
+        if not re.match(r"^\d{13,19}$", cleaned):
             return False, {"error": "Invalid credit card format: must be 13-19 digits"}
 
         # Luhn algorithm check if strict
@@ -276,12 +282,12 @@ class FormatGuard(BaseGuard):
 
     def _validate_ipv4(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate IPv4 address format."""
-        pattern = r'^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$'
+        pattern = r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$"
         is_valid = bool(re.match(pattern, text))
 
         details = {}
         if is_valid:
-            octets = [int(octet) for octet in text.split('.')]
+            octets = [int(octet) for octet in text.split(".")]
             details["octets"] = octets
             details["is_private"] = self._is_private_ipv4(octets)
         else:
@@ -292,8 +298,8 @@ class FormatGuard(BaseGuard):
     def _validate_ipv6(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate IPv6 address format."""
         # Simplified IPv6 validation
-        pattern = r'^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$'
-        compressed_pattern = r'^(?:[0-9a-fA-F]{1,4}:)*::(?:[0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$'
+        pattern = r"^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$"
+        compressed_pattern = r"^(?:[0-9a-fA-F]{1,4}:)*::(?:[0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$"
 
         is_valid = bool(re.match(pattern, text) or re.match(compressed_pattern, text))
 
@@ -307,7 +313,7 @@ class FormatGuard(BaseGuard):
 
     def _validate_uuid(self, text: str) -> tuple[bool, dict[str, Any]]:
         """Validate UUID format."""
-        pattern = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        pattern = r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         is_valid = bool(re.match(pattern, text))
 
         details = {}
@@ -343,18 +349,18 @@ class FormatGuard(BaseGuard):
             return text.strip().lower()
         elif self.format_type == "url":
             # Add http:// if missing
-            if not text.startswith(('http://', 'https://')):
+            if not text.startswith(("http://", "https://")):
                 return f"http://{text}"
         elif self.format_type == "phone":
             # Clean phone number format
-            cleaned = re.sub(r'[\s\-\(\)\.]', '', text)
-            if cleaned.startswith('1') and len(cleaned) == 11:
+            cleaned = re.sub(r"[\s\-\(\)\.]", "", text)
+            if cleaned.startswith("1") and len(cleaned) == 11:
                 return f"+{cleaned}"
             elif len(cleaned) == 10:
                 return f"+1{cleaned}"
         elif self.format_type == "credit_card":
             # Remove spaces and dashes
-            return re.sub(r'[\s\-]', '', text)
+            return re.sub(r"[\s\-]", "", text)
 
         return text
 
@@ -375,22 +381,22 @@ class FormatGuard(BaseGuard):
 
     def _detect_card_type(self, number: str) -> str:
         """Detect credit card type from number."""
-        if number.startswith('4'):
-            return 'Visa'
-        elif number.startswith('5') or number.startswith('2'):
-            return 'Mastercard'
-        elif number.startswith('3'):
-            return 'American Express'
-        elif number.startswith('6'):
-            return 'Discover'
+        if number.startswith("4"):
+            return "Visa"
+        elif number.startswith("5") or number.startswith("2"):
+            return "Mastercard"
+        elif number.startswith("3"):
+            return "American Express"
+        elif number.startswith("6"):
+            return "Discover"
         else:
-            return 'Unknown'
+            return "Unknown"
 
     def _is_private_ipv4(self, octets: list[int]) -> bool:
         """Check if IPv4 address is in private range."""
         # 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
         return (
-            octets[0] == 10 or
-            (octets[0] == 172 and 16 <= octets[1] <= 31) or
-            (octets[0] == 192 and octets[1] == 168)
+            octets[0] == 10
+            or (octets[0] == 172 and 16 <= octets[1] <= 31)
+            or (octets[0] == 192 and octets[1] == 168)
         )

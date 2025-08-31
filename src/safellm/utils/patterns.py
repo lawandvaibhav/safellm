@@ -5,73 +5,71 @@ from __future__ import annotations
 import re
 
 # Email patterns
-EMAIL_PATTERN = re.compile(
-    r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-    re.IGNORECASE
-)
+EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", re.IGNORECASE)
 
 # Phone number patterns (various formats)
 PHONE_PATTERNS = [
-    re.compile(r'\+\d{1,3}[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}'),  # International
-    re.compile(r'\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4}'),  # US format with parentheses
-    re.compile(r'\d{3}[-.\s]?\d{3}[-.\s]?\d{4}'),  # US format
-    re.compile(r'\d{10,15}'),  # Generic long number
+    re.compile(r"\+\d{1,3}[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"),  # International
+    re.compile(r"\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4}"),  # US format with parentheses
+    re.compile(r"\d{3}[-.\s]?\d{3}[-.\s]?\d{4}"),  # US format
+    re.compile(r"\d{10,15}"),  # Generic long number
 ]
 
 # Credit card patterns with basic validation
 CREDIT_CARD_PATTERNS = [
-    re.compile(r'\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b'),  # Visa
-    re.compile(r'\b5[1-5]\d{2}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b'),  # MasterCard
-    re.compile(r'\b3[47]\d{2}[-\s]?\d{6}[-\s]?\d{5}\b'),  # American Express
-    re.compile(r'\b6011[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b'),  # Discover
+    re.compile(r"\b4\d{3}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),  # Visa
+    re.compile(r"\b5[1-5]\d{2}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),  # MasterCard
+    re.compile(r"\b3[47]\d{2}[-\s]?\d{6}[-\s]?\d{5}\b"),  # American Express
+    re.compile(r"\b6011[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"),  # Discover
 ]
 
 # SSN patterns
-SSN_PATTERN = re.compile(r'\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b')
+SSN_PATTERN = re.compile(r"\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b")
 
 # IP address patterns
 IPV4_PATTERN = re.compile(
-    r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}'
-    r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
+    r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}"
+    r"(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
 )
 
 IPV6_PATTERN = re.compile(
-    r'\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|'
-    r'\b::1\b|'
-    r'\b::ffff:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b',
-    re.IGNORECASE
+    r"\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|"
+    r"\b::1\b|"
+    r"\b::ffff:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b",
+    re.IGNORECASE,
 )
 
 # API key patterns
 API_KEY_PATTERNS = [
-    re.compile(r'\bsk_live_[a-zA-Z0-9]{24,}\b'),  # Stripe live keys
-    re.compile(r'\bsk_test_[a-zA-Z0-9]{24,}\b'),  # Stripe test keys
-    re.compile(r'\bAKIA[0-9A-Z]{16}\b'),  # AWS Access Key ID
-    re.compile(r'\bAIza[0-9A-Za-z\-_]{35}\b'),  # Google API Key
-    re.compile(r'\bghp_[a-zA-Z0-9]{36}\b'),  # GitHub Personal Access Token
-    re.compile(r'\bgho_[a-zA-Z0-9]{36}\b'),  # GitHub OAuth Token
-    re.compile(r'\bxoxb-[0-9]+-[0-9]+-[a-zA-Z0-9]+\b'),  # Slack Bot Token
-    re.compile(r'\bxoxp-[0-9]+-[0-9]+-[0-9]+-[a-zA-Z0-9]+\b'),  # Slack User Token
+    re.compile(r"\bsk_live_[a-zA-Z0-9]{24,}\b"),  # Stripe live keys
+    re.compile(r"\bsk_test_[a-zA-Z0-9]{24,}\b"),  # Stripe test keys
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),  # AWS Access Key ID
+    re.compile(r"\bAIza[0-9A-Za-z\-_]{35}\b"),  # Google API Key
+    re.compile(r"\bghp_[a-zA-Z0-9]{36}\b"),  # GitHub Personal Access Token
+    re.compile(r"\bgho_[a-zA-Z0-9]{36}\b"),  # GitHub OAuth Token
+    re.compile(r"\bxoxb-[0-9]+-[0-9]+-[a-zA-Z0-9]+\b"),  # Slack Bot Token
+    re.compile(r"\bxoxp-[0-9]+-[0-9]+-[0-9]+-[a-zA-Z0-9]+\b"),  # Slack User Token
 ]
 
 # JWT pattern
-JWT_PATTERN = re.compile(
-    r'\beyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\b'
-)
+JWT_PATTERN = re.compile(r"\beyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\b")
 
 # Basic password patterns (common indicators)
 PASSWORD_INDICATORS = re.compile(
     r'(?i)\b(?:password|passwd|pwd|pass|secret|key|token)\s*[:=]\s*["\']?([^"\'\s]+)["\']?',
-    re.IGNORECASE
+    re.IGNORECASE,
 )
 
 # IBAN pattern
-IBAN_PATTERN = re.compile(r'\b[A-Z]{2}\d{2}[A-Z0-9]{4,30}\b')
+IBAN_PATTERN = re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{4,30}\b")
 
 # Address patterns (basic)
 ADDRESS_PATTERNS = [
-    re.compile(r'\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd)\b', re.IGNORECASE),
-    re.compile(r'\b\d{5}(?:-\d{4})?\b'),  # US ZIP codes
+    re.compile(
+        r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"\b\d{5}(?:-\d{4})?\b"),  # US ZIP codes
 ]
 
 
@@ -103,11 +101,7 @@ def mask_text(text: str, start: int = 2, end: int = 2, mask_char: str = "*") -> 
     if len(text) <= start + end:
         return mask_char * len(text)
 
-    return (
-        text[:start] +
-        mask_char * (len(text) - start - end) +
-        text[-end:] if end > 0 else ""
-    )
+    return text[:start] + mask_char * (len(text) - start - end) + text[-end:] if end > 0 else ""
 
 
 def mask_email(email: str) -> str:
@@ -129,7 +123,7 @@ def mask_email(email: str) -> str:
 def mask_phone(phone: str) -> str:
     """Mask a phone number."""
     # Extract just digits
-    digits = ''.join(c for c in phone if c.isdigit())
+    digits = "".join(c for c in phone if c.isdigit())
 
     if len(digits) >= 10:
         # Show country code and last 2-3 digits
@@ -144,7 +138,7 @@ def mask_phone(phone: str) -> str:
 def mask_credit_card(card: str) -> str:
     """Mask a credit card number."""
     # Extract just digits
-    digits = ''.join(c for c in card if c.isdigit())
+    digits = "".join(c for c in card if c.isdigit())
 
     if len(digits) >= 13:
         return f"**** **** **** {digits[-4:]}"
@@ -164,7 +158,9 @@ def mask_api_key(key: str) -> str:
 BASIC_PROFANITY = {
     # Add common profanity words here
     # This is a placeholder - real implementation would have comprehensive lists
-    "badword", "offensive", "inappropriate"
+    "badword",
+    "offensive",
+    "inappropriate",
 }
 
 # L33t speak mappings for profanity detection
@@ -192,7 +188,7 @@ def contains_profanity(text: str) -> bool:
     """Check if text contains profanity (basic implementation)."""
     normalized = normalize_leet_speak(text)
     # Remove punctuation and spaces for detection
-    cleaned = ''.join(c for c in normalized if c.isalnum())
+    cleaned = "".join(c for c in normalized if c.isalnum())
 
     for word in BASIC_PROFANITY:
         if word in cleaned:

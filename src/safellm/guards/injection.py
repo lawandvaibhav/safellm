@@ -16,40 +16,40 @@ class PromptInjectionGuard(BaseGuard):
     # Prompt injection patterns
     INJECTION_PATTERNS = {
         "role_manipulation": [
-            r'(?:ignore|forget|disregard)\s+(?:previous|prior|above|earlier)\s+(?:instructions|prompts|rules|commands)',
-            r'(?:you are now|from now on|starting now)\s+(?:a|an|acting as)\s+(?:different|new|another)',
-            r'(?:pretend|act|behave|respond)\s+(?:as if|like|that)\s+(?:you are|you\'re)',
-            r'(?:system|admin|developer|programmer|engineer)\s+(?:mode|access|override|bypass)',
+            r"(?:ignore|forget|disregard)\s+(?:previous|prior|above|earlier)\s+(?:instructions|prompts|rules|commands)",
+            r"(?:you are now|from now on|starting now)\s+(?:a|an|acting as)\s+(?:different|new|another)",
+            r"(?:pretend|act|behave|respond)\s+(?:as if|like|that)\s+(?:you are|you\'re)",
+            r"(?:system|admin|developer|programmer|engineer)\s+(?:mode|access|override|bypass)",
         ],
         "instruction_override": [
-            r'(?:new|updated|revised|different)\s+(?:instructions|prompt|system|rules)',
-            r'(?:override|bypass|ignore|skip|disable)\s+(?:safety|security|restrictions|filters)',
-            r'(?:end|stop|terminate|cancel)\s+(?:safety|security|protection|filtering)',
-            r'(?:disable|turn off|remove|delete)\s+(?:guardrails|safety|security)',
+            r"(?:new|updated|revised|different)\s+(?:instructions|prompt|system|rules)",
+            r"(?:override|bypass|ignore|skip|disable)\s+(?:safety|security|restrictions|filters)",
+            r"(?:end|stop|terminate|cancel)\s+(?:safety|security|protection|filtering)",
+            r"(?:disable|turn off|remove|delete)\s+(?:guardrails|safety|security)",
         ],
         "jailbreak_attempts": [
-            r'(?:DAN|do anything now|developer mode|god mode|admin mode)',
-            r'(?:hypothetically|in theory|imagine if|what if|suppose)',
-            r'(?:for educational|for research|for academic)\s+(?:purposes|reasons)',
-            r'(?:just pretend|just imagine|just suppose|as an example)',
+            r"(?:DAN|do anything now|developer mode|god mode|admin mode)",
+            r"(?:hypothetically|in theory|imagine if|what if|suppose)",
+            r"(?:for educational|for research|for academic)\s+(?:purposes|reasons)",
+            r"(?:just pretend|just imagine|just suppose|as an example)",
         ],
         "output_manipulation": [
-            r'(?:output|respond|answer|reply)\s+(?:only|just|simply)\s+(?:yes|no|true|false)',
-            r'(?:don\'t|do not|never)\s+(?:mention|say|include|add)\s+(?:warning|disclaimer|note)',
-            r'(?:without|skip|omit)\s+(?:warnings|disclaimers|safety|notes)',
-            r'(?:format|structure|present)\s+(?:as|like|in the form of)',
+            r"(?:output|respond|answer|reply)\s+(?:only|just|simply)\s+(?:yes|no|true|false)",
+            r"(?:don\'t|do not|never)\s+(?:mention|say|include|add)\s+(?:warning|disclaimer|note)",
+            r"(?:without|skip|omit)\s+(?:warnings|disclaimers|safety|notes)",
+            r"(?:format|structure|present)\s+(?:as|like|in the form of)",
         ],
         "context_confusion": [
-            r'(?:previous|earlier|above)\s+(?:conversation|chat|message|prompt)\s+(?:was|is)',
-            r'(?:multiple|different|separate)\s+(?:conversations|chats|sessions)',
-            r'(?:conversation|chat|session)\s+(?:history|context|background)',
-            r'(?:remember|recall|think back)\s+(?:when|to when|about when)',
+            r"(?:previous|earlier|above)\s+(?:conversation|chat|message|prompt)\s+(?:was|is)",
+            r"(?:multiple|different|separate)\s+(?:conversations|chats|sessions)",
+            r"(?:conversation|chat|session)\s+(?:history|context|background)",
+            r"(?:remember|recall|think back)\s+(?:when|to when|about when)",
         ],
         "social_engineering": [
-            r'(?:my|the)\s+(?:grandmother|mother|father|parent)\s+(?:used to|would)',
-            r'(?:life|death|emergency|urgent|critical|important)\s+(?:situation|matter|case)',
-            r'(?:please|help|assist|save)\s+(?:me|us|my|our)\s+(?:life|lives|situation)',
-            r'(?:if you don\'t|unless you|you must|you have to|you need to)',
+            r"(?:my|the)\s+(?:grandmother|mother|father|parent)\s+(?:used to|would)",
+            r"(?:life|death|emergency|urgent|critical|important)\s+(?:situation|matter|case)",
+            r"(?:please|help|assist|save)\s+(?:me|us|my|our)\s+(?:life|lives|situation)",
+            r"(?:if you don\'t|unless you|you must|you have to|you need to)",
         ],
     }
 
@@ -91,8 +91,7 @@ class PromptInjectionGuard(BaseGuard):
 
             # Compile regex patterns
             self.patterns[category] = [
-                re.compile(pattern, re.IGNORECASE | re.MULTILINE)
-                for pattern in patterns
+                re.compile(pattern, re.IGNORECASE | re.MULTILINE) for pattern in patterns
             ]
 
     @property
@@ -162,15 +161,17 @@ class PromptInjectionGuard(BaseGuard):
             for pattern in patterns:
                 matches = list(pattern.finditer(text))
                 for match in matches:
-                    detections.append({
-                        "category": category,
-                        "pattern": pattern.pattern,
-                        "match": match.group(),
-                        "start": match.start(),
-                        "end": match.end(),
-                        "context": text[max(0, match.start() - 30):match.end() + 30],
-                        "weight": self.PATTERN_WEIGHTS.get(category, 0.5),
-                    })
+                    detections.append(
+                        {
+                            "category": category,
+                            "pattern": pattern.pattern,
+                            "match": match.group(),
+                            "start": match.start(),
+                            "end": match.end(),
+                            "context": text[max(0, match.start() - 30) : match.end() + 30],
+                            "weight": self.PATTERN_WEIGHTS.get(category, 0.5),
+                        }
+                    )
 
         return detections
 
@@ -236,10 +237,10 @@ class PromptInjectionGuard(BaseGuard):
     def _is_potential_instruction(self, text: str) -> bool:
         """Check if text looks like an instruction or command."""
         instruction_indicators = [
-            r'(?:^|\n)\s*(?:please|kindly|can you|could you|would you)',
-            r'(?:^|\n)\s*(?:tell me|show me|explain|describe|list|generate)',
-            r'(?:^|\n)\s*(?:write|create|make|build|design|develop)',
-            r'(?:^|\n)\s*(?:ignore|forget|disregard|override|bypass)',
+            r"(?:^|\n)\s*(?:please|kindly|can you|could you|would you)",
+            r"(?:^|\n)\s*(?:tell me|show me|explain|describe|list|generate)",
+            r"(?:^|\n)\s*(?:write|create|make|build|design|develop)",
+            r"(?:^|\n)\s*(?:ignore|forget|disregard|override|bypass)",
         ]
 
         for pattern in instruction_indicators:

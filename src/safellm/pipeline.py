@@ -67,8 +67,8 @@ class Pipeline:
         for i, guard in enumerate(self.steps):
             try:
                 logger.debug(
-                    f"Running guard {guard.name} (step {i+1}/{len(self.steps)})",
-                    extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                    f"Running guard {guard.name} (step {i + 1}/{len(self.steps)})",
+                    extra={"audit_id": ctx.audit_id, "guard": guard.name},
                 )
 
                 decision = guard.check(current_data, ctx)
@@ -80,7 +80,7 @@ class Pipeline:
                 if decision.action == "deny":
                     logger.info(
                         f"Guard {guard.name} denied request: {', '.join(decision.reasons)}",
-                        extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                        extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     )
                     if self.fail_fast:
                         return Decision.deny(
@@ -93,7 +93,7 @@ class Pipeline:
                 elif decision.action == "transform":
                     logger.debug(
                         f"Guard {guard.name} transformed data: {', '.join(decision.reasons)}",
-                        extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                        extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     )
                     current_data = decision.output
                     transformations += 1
@@ -101,7 +101,7 @@ class Pipeline:
                 elif decision.action == "retry":
                     logger.info(
                         f"Guard {guard.name} requested retry: {', '.join(decision.reasons)}",
-                        extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                        extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     )
                     if self.fail_fast:
                         return Decision.retry(
@@ -115,7 +115,7 @@ class Pipeline:
                 logger.error(
                     f"Guard {guard.name} raised exception: {e}",
                     extra={"audit_id": ctx.audit_id, "guard": guard.name},
-                    exc_info=True
+                    exc_info=True,
                 )
 
                 error_reason = f"Guard {guard.name} failed: {str(e)}"
@@ -186,13 +186,15 @@ class Pipeline:
         all_evidence: dict[str, Any] = {}
         transformations = 0
 
-        logger.debug(f"Starting async pipeline {self.name} validation", extra={"audit_id": ctx.audit_id})
+        logger.debug(
+            f"Starting async pipeline {self.name} validation", extra={"audit_id": ctx.audit_id}
+        )
 
         for i, guard in enumerate(self.steps):
             try:
                 logger.debug(
-                    f"Running guard {guard.name} (step {i+1}/{len(self.steps)})",
-                    extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                    f"Running guard {guard.name} (step {i + 1}/{len(self.steps)})",
+                    extra={"audit_id": ctx.audit_id, "guard": guard.name},
                 )
 
                 decision = await guard.acheck(current_data, ctx)
@@ -204,7 +206,7 @@ class Pipeline:
                 if decision.action == "deny":
                     logger.info(
                         f"Guard {guard.name} denied request: {', '.join(decision.reasons)}",
-                        extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                        extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     )
                     if self.fail_fast:
                         return Decision.deny(
@@ -217,7 +219,7 @@ class Pipeline:
                 elif decision.action == "transform":
                     logger.debug(
                         f"Guard {guard.name} transformed data: {', '.join(decision.reasons)}",
-                        extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                        extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     )
                     current_data = decision.output
                     transformations += 1
@@ -225,7 +227,7 @@ class Pipeline:
                 elif decision.action == "retry":
                     logger.info(
                         f"Guard {guard.name} requested retry: {', '.join(decision.reasons)}",
-                        extra={"audit_id": ctx.audit_id, "guard": guard.name}
+                        extra={"audit_id": ctx.audit_id, "guard": guard.name},
                     )
                     if self.fail_fast:
                         return Decision.retry(
@@ -239,7 +241,7 @@ class Pipeline:
                 logger.error(
                     f"Guard {guard.name} raised exception: {e}",
                     extra={"audit_id": ctx.audit_id, "guard": guard.name},
-                    exc_info=True
+                    exc_info=True,
                 )
 
                 error_reason = f"Guard {guard.name} failed: {str(e)}"
