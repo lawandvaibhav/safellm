@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from ..context import Context
@@ -198,7 +199,7 @@ class SecretMaskGuard(BaseGuard):
         return result, detections
 
     def _process_pattern(
-        self, text: str, pattern, secret_type: str
+        self, text: str, pattern: re.Pattern[str], secret_type: str
     ) -> tuple[str, list[dict[str, Any]]]:
         """Process a custom pattern."""
         detections = []

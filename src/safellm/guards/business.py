@@ -361,7 +361,8 @@ class BusinessRulesGuard(BaseGuard):
         self, config: dict[str, Any], data: Any, ctx: Context
     ) -> dict[str, Any]:
         """Evaluate time window rule."""
-        current_time = ctx.timestamp or datetime.utcnow()
+        from datetime import datetime
+        current_time = datetime.utcnow()
 
         start_time = config["start_time"]
         end_time = config["end_time"]

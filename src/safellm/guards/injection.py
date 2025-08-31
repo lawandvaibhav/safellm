@@ -181,7 +181,7 @@ class PromptInjectionGuard(BaseGuard):
             return 0.0
 
         # Group by category to avoid over-weighting
-        category_confidences = {}
+        category_confidences: dict[str, list[float]] = {}
         for detection in detections:
             category = detection["category"]
             weight = detection["weight"]
@@ -200,10 +200,10 @@ class PromptInjectionGuard(BaseGuard):
             total_confidence += category_confidence
 
         # Normalize and add multi-category bonus
-        base_confidence = total_confidence / len(category_confidences)
+        base_confidence = total_confidence / float(len(category_confidences))
         multi_category_bonus = min(0.3, (len(category_confidences) - 1) * 0.1)
 
-        return min(1.0, base_confidence + multi_category_bonus)
+        return float(min(1.0, base_confidence + multi_category_bonus))
 
     def _sanitize_injections(self, text: str, detections: list[dict[str, Any]]) -> str:
         """Sanitize injection attempts from text."""

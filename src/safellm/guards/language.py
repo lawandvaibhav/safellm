@@ -130,5 +130,6 @@ class LanguageGuard(BaseGuard):
                     )
 
         # Sort by confidence descending
-        results.sort(key=lambda x: x["confidence"], reverse=True)
+        from typing import cast
+        results.sort(key=lambda x: cast(float, x.get("confidence", 0.0)), reverse=True)
         return results

@@ -1,0 +1,524 @@
+# SafeLLM API Documentation
+
+SafeLLM is an enterprise-grade guardrails and sanitization library for LLM applications. It provides deterministic outputs, safe content filtering, and production-grade controls for AI apps.
+
+## Installation
+
+```bash
+# Basic installation
+pip install safellm
+
+# Full installation with all optional dependencies
+pip install safellm[full]
+
+# Development installation
+pip install safellm[dev]
+```
+
+## Core API
+
+### Main Imports
+
+```python
+from safellm import Pipeline, guards, Context, Decision, ValidationError
+from safellm import Guard, BaseGuard, AsyncGuard
+```
+
+### Pipeline Class
+
+The core class for creating validation pipelines.
+
+```python
+class Pipeline:
+    def __init__(
+        self,
+        name: str,
+        steps: Sequence[Guard],
+        *,
+        fail_fast: bool = True,
+        on_error: Literal["deny", "allow", "transform"] = "deny",
+    ):
+        """Initialize the pipeline.
+        
+        Args:
+            name: Name of the pipeline for identification
+            steps: Sequence of guards to execute in order
+            fail_fast: Whether to stop on the first failure
+            on_error: Default action when a guard raises an exception
+        """
+
+    def validate(self, data: Any, *, ctx: Context | None = None) -> Decision:
+        """Synchronously validate data through the pipeline."""
+
+    async def avalidate(self, data: Any, *, ctx: Context | None = None) -> Decision:
+        """Asynchronously validate data through the pipeline."""
+```
+
+### Decision Class
+
+Result object returned by all validation operations.
+
+```python
+class Decision(NamedTuple):
+    """Result of a validation pipeline or guard check.
+    
+    Attributes:
+        allowed: Whether the data passed validation
+        action: The action to take (allow, deny, transform, retry)
+        reasons: List of human-readable reasons for the decision
+        evidence: Dictionary containing evidence for the decision
+        output: The original or transformed data
+        audit_id: Unique identifier for correlating with logs and traces
+    """
+    allowed: bool
+    action: Literal["allow", "deny", "transform", "retry"]
+    reasons: list[str]
+    evidence: dict[str, Any]
+    output: Any
+    audit_id: str
+
+    @classmethod
+    def allow(cls, output: Any, *, audit_id: str | None = None, evidence: dict[str, Any] | None = None) -> Decision:
+        """Create an allow decision."""
+
+    @classmethod
+    def deny(cls, output: Any, reasons: list[str], *, audit_id: str | None = None, evidence: dict[str, Any] | None = None) -> Decision:
+        """Create a deny decision."""
+
+    @classmethod
+    def transform(cls, output: Any, reasons: list[str], *, audit_id: str | None = None, evidence: dict[str, Any] | None = None) -> Decision:
+        """Create a transform decision."""
+```
+
+### Context Class
+
+Context object that carries metadata through validation pipelines.
+
+```python
+class Context:
+    """Context object for passing metadata through validation pipelines."""
+    
+    def __init__(self, **kwargs):
+        """Initialize context with arbitrary metadata."""
+```
+
+### Guard Protocol
+
+Interface for implementing custom guards.
+
+```python
+@runtime_checkable
+class Guard(Protocol):
+    """Protocol for guards that can validate and transform data."""
+    
+    name: str
+
+    def check(self, data: Any, ctx: Context) -> Decision:
+        """Synchronously check data and return a decision."""
+
+    async def acheck(self, data: Any, ctx: Context) -> Decision:
+        """Asynchronously check data and return a decision."""
+```
+
+### BaseGuard Class
+
+Base class for implementing guards with default async support.
+
+```python
+class BaseGuard(ABC):
+    """Base class for implementing guards."""
+    
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Return the name of this guard."""
+
+    @abstractmethod
+    def check(self, data: Any, ctx: Context) -> Decision:
+        """Check data and return a decision."""
+
+    async def acheck(self, data: Any, ctx: Context) -> Decision:
+        """Async version that calls check() by default."""
+```
+
+## Available Guards
+
+### Content Safety Guards
+
+#### LengthGuard
+```python
+class LengthGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        max_chars: int | None = None,
+        min_chars: int | None = None,
+        max_tokens: int | None = None,
+        min_tokens: int | None = None,
+        encoding: str = "cl100k_base"
+    ):
+        """Enforce character or token limits."""
+```
+
+#### PiiRedactionGuard
+```python
+class PiiRedactionGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        mode: Literal["mask", "remove", "detect"] = "mask",
+        entities: list[str] | None = None,
+        mask_char: str = "*",
+        preserve_length: bool = True
+    ):
+        """Detect and redact PII (emails, phones, SSNs, credit cards, etc.)."""
+```
+
+#### SecretMaskGuard
+```python
+class SecretMaskGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        secret_types: list[str] | None = None,
+        mask_char: str = "*",
+        preserve_length: bool = True
+    ):
+        """Mask API keys, tokens, and credentials."""
+```
+
+#### ProfanityGuard
+```python
+class ProfanityGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        action: Literal["block", "mask", "flag"] = "block",
+        languages: list[str] | None = None,
+        custom_words: list[str] | None = None
+    ):
+        """Filter inappropriate language."""
+```
+
+#### ToxicityGuard
+```python
+class ToxicityGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        threshold: float = 0.7,
+        action: Literal["block", "flag"] = "block"
+    ):
+        """Detect toxic content using ML models."""
+```
+
+### Structure & Format Guards
+
+#### SchemaGuard
+```python
+class SchemaGuard(BaseGuard):
+    def __init__(self, schema: dict):
+        """Validate against JSON Schema."""
+
+    @classmethod
+    def from_model(cls, model: type[BaseModel]) -> SchemaGuard:
+        """Create from Pydantic model."""
+
+class JsonSchemaGuard(SchemaGuard):
+    """Alias for SchemaGuard."""
+
+class PydanticSchemaGuard(BaseGuard):
+    def __init__(self, model: type[BaseModel]):
+        """Validate against Pydantic model directly."""
+```
+
+#### HtmlSanitizerGuard
+```python
+class HtmlSanitizerGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        policy: Literal["strict", "basic", "relaxed"] = "basic",
+        allowed_tags: set[str] | None = None,
+        allowed_attributes: dict[str, list[str]] | None = None
+    ):
+        """Clean HTML content and prevent XSS."""
+```
+
+#### MarkdownSanitizerGuard
+```python
+class MarkdownSanitizerGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        allow_html: bool = False,
+        strip_dangerous: bool = True
+    ):
+        """Sanitize Markdown content."""
+```
+
+### Extended Guards
+
+#### BusinessRulesGuard
+```python
+class BusinessRulesGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        rules: list[dict] | None = None,
+        fail_fast: bool = True
+    ):
+        """Apply custom business logic rules."""
+```
+
+#### FormatGuard
+```python
+class FormatGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        expected_format: Literal["json", "xml", "yaml", "plain"] = "json",
+        strict: bool = True
+    ):
+        """Validate content format."""
+```
+
+#### PromptInjectionGuard
+```python
+class PromptInjectionGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        sensitivity: Literal["low", "medium", "high"] = "medium"
+    ):
+        """Detect prompt injection attempts."""
+```
+
+#### LanguageGuard
+```python
+class LanguageGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        allowed_languages: list[str],
+        confidence_threshold: float = 0.8
+    ):
+        """Validate content language."""
+```
+
+#### PrivacyComplianceGuard
+```python
+class PrivacyComplianceGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        regulations: list[Literal["gdpr", "ccpa", "pipeda"]] = ["gdpr"],
+        mode: Literal["audit", "enforce"] = "audit"
+    ):
+        """Ensure privacy regulation compliance."""
+```
+
+#### RateLimitGuard
+```python
+class RateLimitGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        requests_per_minute: int = 60,
+        requests_per_hour: int = 1000,
+        identifier_key: str = "user_id"
+    ):
+        """Rate limiting based on context identifiers."""
+```
+
+#### SimilarityGuard
+```python
+class SimilarityGuard(BaseGuard):
+    def __init__(
+        self,
+        *,
+        reference_texts: list[str],
+        threshold: float = 0.8,
+        method: Literal["cosine", "jaccard", "levenshtein"] = "cosine"
+    ):
+        """Detect similarity to reference texts."""
+```
+
+## Usage Examples
+
+### Basic Pipeline
+```python
+from safellm import Pipeline, guards
+
+# Create a validation pipeline
+pipeline = Pipeline(
+    name="content_safety",
+    steps=[
+        guards.LengthGuard(max_chars=5000),
+        guards.PiiRedactionGuard(mode="mask"),
+        guards.ProfanityGuard(action="block"),
+        guards.HtmlSanitizerGuard(policy="strict"),
+    ],
+)
+
+# Validate LLM output
+llm_output = "Contact me at john@email.com for more info!"
+decision = pipeline.validate(llm_output)
+
+if decision.allowed:
+    safe_output = decision.output  # "Contact me at j***@email.com for more info!"
+    print("✅ Content is safe:", safe_output)
+else:
+    print("❌ Content blocked:", decision.reasons)
+```
+
+### Schema Validation
+```python
+from pydantic import BaseModel
+from safellm import Pipeline, guards
+
+class BlogPost(BaseModel):
+    title: str
+    content: str
+    tags: list[str]
+
+# Validate structured LLM output
+pipeline = Pipeline("blog_validation", [
+    guards.SchemaGuard.from_model(BlogPost),
+    guards.LengthGuard(max_chars=2000),
+])
+
+llm_json_output = '{"title": "Hello", "content": "World", "tags": ["ai"]}'
+decision = pipeline.validate(llm_json_output)
+```
+
+### Async Validation
+```python
+import asyncio
+from safellm import Pipeline, guards
+
+async def validate_async():
+    pipeline = Pipeline("async_pipeline", [
+        guards.ToxicityGuard(threshold=0.7),
+        guards.PiiRedactionGuard(mode="mask"),
+    ])
+    
+    decision = await pipeline.avalidate("Some text to validate")
+    return decision
+
+# Run async validation
+decision = asyncio.run(validate_async())
+```
+
+### Custom Guard Implementation
+```python
+from safellm import BaseGuard, Decision, Context
+from typing import Any
+
+class CustomWordGuard(BaseGuard):
+    def __init__(self, forbidden_words: list[str]):
+        self.forbidden_words = [word.lower() for word in forbidden_words]
+    
+    @property
+    def name(self) -> str:
+        return "custom_word_guard"
+    
+    def check(self, data: Any, ctx: Context) -> Decision:
+        if not isinstance(data, str):
+            return Decision.allow(data)
+        
+        text_lower = data.lower()
+        found_words = [word for word in self.forbidden_words if word in text_lower]
+        
+        if found_words:
+            return Decision.deny(
+                data,
+                reasons=[f"Contains forbidden words: {', '.join(found_words)}"],
+                evidence={"forbidden_words": found_words}
+            )
+        
+        return Decision.allow(data)
+
+# Usage
+custom_guard = CustomWordGuard(["badword1", "badword2"])
+pipeline = Pipeline("custom_pipeline", [custom_guard])
+```
+
+## Configuration
+
+### Environment Variables
+```bash
+# Telemetry settings
+SAFELLM_TELEMETRY=off|basic|otlp
+
+# Default behavior
+SAFELLM_DEFAULT_DENY=true|false
+SAFELLM_REDACTION_STYLE=mask|remove
+```
+
+### Configuration File (pyproject.toml)
+```toml
+[tool.safellm]
+default_deny = true
+telemetry = "basic"
+redaction_style = "mask"
+```
+
+## Error Handling
+
+### ValidationError
+```python
+class ValidationError(Exception):
+    """Exception raised when validation fails unexpectedly."""
+    
+    def __init__(self, message: str, guard_name: str | None = None):
+        self.guard_name = guard_name
+        super().__init__(message)
+```
+
+## Observability
+
+### Structured Logging
+```python
+import logging
+logging.basicConfig(level=logging.INFO)
+
+# Logs include audit_id, guard names, and sanitized evidence
+decision = pipeline.validate(data)
+print(f"Audit ID: {decision.audit_id}")
+print(f"Evidence: {decision.evidence}")  # Redacted by default
+```
+
+### OpenTelemetry Integration
+```bash
+# Install with OpenTelemetry support
+pip install safellm[otel]
+
+# Metrics available:
+# - safellm.guards.duration (histogram)  
+# - safellm.decisions.total (counter)
+# - safellm.violations.count (counter)
+```
+
+## Testing
+
+```python
+# All guards and pipelines are testable
+import unittest
+from safellm import Pipeline, guards
+
+class TestSafeLLM(unittest.TestCase):
+    def test_pipeline(self):
+        pipeline = Pipeline("test", [guards.LengthGuard(max_chars=10)])
+        decision = pipeline.validate("short")
+        self.assertTrue(decision.allowed)
+        
+        decision = pipeline.validate("this is too long")
+        self.assertFalse(decision.allowed)
+```
+
+## Version Information
+
+Current version: 0.1.0
+
+The library follows semantic versioning and maintains backward compatibility within major versions.

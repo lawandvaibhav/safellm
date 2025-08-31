@@ -156,9 +156,6 @@ class FormatGuard(BaseGuard):
                 return self._validate_uuid(text)
             elif self.format_type == "custom":
                 return self._validate_custom(text)
-            else:
-                error_details["error"] = f"Unknown format type: {self.format_type}"
-                return False, error_details
 
         except Exception as e:
             error_details["error"] = str(e)
@@ -188,7 +185,7 @@ class FormatGuard(BaseGuard):
             pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
         is_valid = bool(re.match(pattern, text))
-        details = {"strict_mode": self.strict}
+        details: dict[str, Any] = {"strict_mode": self.strict}
 
         if is_valid:
             parts = text.split("@")
@@ -213,7 +210,7 @@ class FormatGuard(BaseGuard):
             pattern = r"^https?://\S+$"
 
         is_valid = bool(re.match(pattern, text))
-        details = {"strict_mode": self.strict}
+        details: dict[str, Any] = {"strict_mode": self.strict}
 
         if is_valid:
             # Extract URL components
@@ -245,7 +242,7 @@ class FormatGuard(BaseGuard):
             pattern = r"^(?:\+?1)?[2-9]\d{2}[2-9]\d{2}\d{4}$|^\+\d{1,3}\d{4,14}$"
 
         is_valid = bool(re.match(pattern, cleaned))
-        details = {
+        details: dict[str, Any] = {
             "strict_mode": self.strict,
             "cleaned_number": cleaned,
             "original_format": text,
@@ -285,7 +282,7 @@ class FormatGuard(BaseGuard):
         pattern = r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$"
         is_valid = bool(re.match(pattern, text))
 
-        details = {}
+        details: dict[str, Any] = {}
         if is_valid:
             octets = [int(octet) for octet in text.split(".")]
             details["octets"] = octets
@@ -303,7 +300,7 @@ class FormatGuard(BaseGuard):
 
         is_valid = bool(re.match(pattern, text) or re.match(compressed_pattern, text))
 
-        details = {}
+        details: dict[str, Any] = {}
         if is_valid:
             details["compressed"] = "::" in text
         else:
@@ -316,7 +313,7 @@ class FormatGuard(BaseGuard):
         pattern = r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         is_valid = bool(re.match(pattern, text))
 
-        details = {}
+        details: dict[str, Any] = {}
         if is_valid:
             # Extract version
             version = int(text[14], 16) >> 2
@@ -334,7 +331,7 @@ class FormatGuard(BaseGuard):
         match = self._compiled_pattern.match(text)
         is_valid = bool(match)
 
-        details = {"pattern": self.pattern}
+        details: dict[str, Any] = {"pattern": self.pattern}
         if match and match.groups():
             details["groups"] = match.groups()
         if not is_valid:

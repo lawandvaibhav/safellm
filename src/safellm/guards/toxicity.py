@@ -171,7 +171,7 @@ class ToxicityGuard(BaseGuard):
         weighted_severity = 0.0
 
         # Group by category to avoid over-weighting repeated patterns
-        category_severities = {}
+        category_severities: dict[str, list[float]] = {}
         for detection in detections:
             category = detection["category"]
             severity = detection["severity"]
