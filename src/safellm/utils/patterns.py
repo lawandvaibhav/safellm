@@ -41,6 +41,8 @@ IPV6_PATTERN = re.compile(
 
 # API key patterns
 API_KEY_PATTERNS = [
+    re.compile(r"\bsk-[a-zA-Z0-9]{48}\b"),  # OpenAI API keys
+    re.compile(r"\bpk-[a-zA-Z0-9]{48}\b"),  # OpenAI publishable keys
     re.compile(r"\bsk_live_[a-zA-Z0-9]{24,}\b"),  # Stripe live keys
     re.compile(r"\bsk_test_[a-zA-Z0-9]{24,}\b"),  # Stripe test keys
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),  # AWS Access Key ID

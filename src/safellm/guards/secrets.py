@@ -19,6 +19,45 @@ from ..utils.patterns import (
 class SecretMaskGuard(BaseGuard):
     """Guard that detects and masks secrets like API keys, tokens, and passwords."""
 
+    SECRET_PATTERNS = {
+        "api_key": [
+            r"(?i)(?:api[_-]?key|apikey)\s*[=:]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+            r"(?i)(?:secret[_-]?key|secretkey)\s*[=:]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+            r"(?i)(?:access[_-]?key|accesskey)\s*[=:]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+            # Add OpenAI-style API keys
+            r"sk-[a-zA-Z0-9]{48}",
+            r"pk-[a-zA-Z0-9]{48}",
+            # Add other common API key patterns
+            r"(?i)(?:bearer\s+)?['\"]?([a-zA-Z0-9_-]{32,})['\"]?(?:\s|$)",
+        ],
+        "password": [
+            r"(?i)(?:password|passwd|pwd)\s*[=:]\s*['\"]?([^\s'\"]{8,})['\"]?",
+            r"(?i)(?:pass|passphrase)\s*[=:]\s*['\"]?([^\s'\"]{8,})['\"]?",
+        ],
+        "token": [
+            r"(?i)(?:token|auth[_-]?token|authtoken)\s*[=:]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+            r"(?i)(?:bearer[_-]?token|bearertoken)\s*[=:]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+            r"(?i)(?:access[_-]?token|accesstoken)\s*[=:]\s*['\"]?([a-zA-Z0-9_-]{20,})['\"]?",
+            # Add JWT pattern
+            r"eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*",
+        ],
+        "private_key": [
+            r"-----BEGIN (?:RSA )?PRIVATE KEY-----",
+            r"-----BEGIN OPENSSH PRIVATE KEY-----",
+            r"-----BEGIN DSA PRIVATE KEY-----",
+            r"-----BEGIN EC PRIVATE KEY-----",
+        ],
+        "database": [
+            r"(?i)(?:db[_-]?password|database[_-]?password)\s*[=:]\s*['\"]?([^\s'\"]{6,})['\"]?",
+            r"(?i)(?:mysql|postgres|mongodb)[_-]?(?:password|pass)\s*[=:]\s*['\"]?([^\s'\"]{6,})['\"]?",
+        ],
+        "cloud": [
+            r"(?i)aws[_-]?(?:access[_-]?key[_-]?id|secret[_-]?access[_-]?key)",
+            r"(?i)gcp[_-]?(?:service[_-]?account|key)",
+            r"(?i)azure[_-]?(?:client[_-]?secret|tenant[_-]?id)",
+        ],
+    }
+
     def __init__(
         self,
         vendors: list[str] | None = None,

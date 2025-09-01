@@ -16,40 +16,42 @@ class PromptInjectionGuard(BaseGuard):
     # Prompt injection patterns
     INJECTION_PATTERNS = {
         "role_manipulation": [
-            r"(?:ignore|forget|disregard)\s+(?:previous|prior|above|earlier)\s+(?:instructions|prompts|rules|commands)",
-            r"(?:you are now|from now on|starting now)\s+(?:a|an|acting as)\s+(?:different|new|another)",
-            r"(?:pretend|act|behave|respond)\s+(?:as if|like|that)\s+(?:you are|you\'re)",
-            r"(?:system|admin|developer|programmer|engineer)\s+(?:mode|access|override|bypass)",
+            r"(?i)(?:ignore|forget|disregard)\s+(?:previous|prior|above|earlier)\s+(?:instructions|prompts|rules|commands)",
+            r"(?i)(?:you are now|from now on|starting now)\s+(?:a|an|acting as)\s+(?:different|new|another)",
+            r"(?i)(?:pretend|act|behave|respond)\s+(?:as if|like|that)\s+(?:you are|you\'re)",
+            r"(?i)(?:system|admin|developer|programmer|engineer)\s+(?:mode|access|override|bypass)",
         ],
         "instruction_override": [
-            r"(?:new|updated|revised|different)\s+(?:instructions|prompt|system|rules)",
-            r"(?:override|bypass|ignore|skip|disable)\s+(?:safety|security|restrictions|filters)",
-            r"(?:end|stop|terminate|cancel)\s+(?:safety|security|protection|filtering)",
-            r"(?:disable|turn off|remove|delete)\s+(?:guardrails|safety|security)",
+            r"(?i)(?:new|updated|revised|different)\s+(?:instructions|prompt|system|rules)",
+            r"(?i)(?:override|bypass|ignore|skip|disable)\s+(?:safety|security|restrictions|filters)",
+            r"(?i)(?:end|stop|terminate|cancel)\s+(?:safety|security|protection|filtering)",
+            r"(?i)(?:disable|turn off|remove|delete)\s+(?:guardrails|safety|security)",
+            r"(?i)ignore\s+all\s+previous\s+instructions",
+            r"(?i)(?:without|ignore)\s+(?:any\s+)?(?:limitations|restrictions|safety)",
         ],
         "jailbreak_attempts": [
-            r"(?:DAN|do anything now|developer mode|god mode|admin mode)",
-            r"(?:hypothetically|in theory|imagine if|what if|suppose)",
-            r"(?:for educational|for research|for academic)\s+(?:purposes|reasons)",
-            r"(?:just pretend|just imagine|just suppose|as an example)",
+            r"(?i)(?:DAN|do anything now|developer mode|god mode|admin mode)",
+            r"(?i)(?:hypothetically|in theory|imagine if|what if|suppose)",
+            r"(?i)(?:for educational|for research|for academic)\s+(?:purposes|reasons)",
+            r"(?i)(?:just pretend|just imagine|just suppose|as an example)",
         ],
         "output_manipulation": [
-            r"(?:output|respond|answer|reply)\s+(?:only|just|simply)\s+(?:yes|no|true|false)",
-            r"(?:don\'t|do not|never)\s+(?:mention|say|include|add)\s+(?:warning|disclaimer|note)",
-            r"(?:without|skip|omit)\s+(?:warnings|disclaimers|safety|notes)",
-            r"(?:format|structure|present)\s+(?:as|like|in the form of)",
+            r"(?i)(?:output|respond|answer|reply)\s+(?:only|just|simply)\s+(?:yes|no|true|false)",
+            r"(?i)(?:don\'t|do not|never)\s+(?:mention|say|include|add)\s+(?:warning|disclaimer|note)",
+            r"(?i)(?:without|skip|omit)\s+(?:warnings|disclaimers|safety|notes)",
+            r"(?i)(?:format|structure|present)\s+(?:as|like|in the form of)",
         ],
         "context_confusion": [
-            r"(?:previous|earlier|above)\s+(?:conversation|chat|message|prompt)\s+(?:was|is)",
-            r"(?:multiple|different|separate)\s+(?:conversations|chats|sessions)",
-            r"(?:conversation|chat|session)\s+(?:history|context|background)",
-            r"(?:remember|recall|think back)\s+(?:when|to when|about when)",
+            r"(?i)(?:previous|earlier|above)\s+(?:conversation|chat|message|prompt)\s+(?:was|is)",
+            r"(?i)(?:multiple|different|separate)\s+(?:conversations|chats|sessions)",
+            r"(?i)(?:conversation|chat|session)\s+(?:history|context|background)",
+            r"(?i)(?:remember|recall|think back)\s+(?:when|to when|about when)",
         ],
         "social_engineering": [
-            r"(?:my|the)\s+(?:grandmother|mother|father|parent)\s+(?:used to|would)",
-            r"(?:life|death|emergency|urgent|critical|important)\s+(?:situation|matter|case)",
-            r"(?:please|help|assist|save)\s+(?:me|us|my|our)\s+(?:life|lives|situation)",
-            r"(?:if you don\'t|unless you|you must|you have to|you need to)",
+            r"(?i)(?:my|the)\s+(?:grandmother|mother|father|parent)\s+(?:used to|would)",
+            r"(?i)(?:life|death|emergency|urgent|critical|important)\s+(?:situation|matter|case)",
+            r"(?i)(?:please|help|assist|save)\s+(?:me|us|my|our)\s+(?:life|lives|situation)",
+            r"(?i)(?:if you don\'t|unless you|you must|you have to|you need to)",
         ],
     }
 
@@ -141,6 +143,7 @@ class PromptInjectionGuard(BaseGuard):
                     evidence=evidence,
                 )
             else:  # flag
+                reasons.append("Content flagged but allowed")
                 return Decision.allow(
                     data,
                     audit_id=ctx.audit_id,
