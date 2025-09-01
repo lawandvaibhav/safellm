@@ -338,14 +338,9 @@ class TestBusinessRulesGuard(unittest.TestCase):
 
         # Test invalid rule type
         with self.assertRaises(ValueError):
-            BusinessRulesGuard([
-                {
-                    "id": "test",
-                    "name": "Test",
-                    "type": "invalid_type",
-                    "config": {}
-                }
-            ])
+            BusinessRulesGuard(
+                [{"id": "test", "name": "Test", "type": "invalid_type", "config": {}}]
+            )
 
     def test_comprehensive_evidence(self):
         """Test that evidence contains all expected information."""
@@ -361,7 +356,7 @@ class TestBusinessRulesGuard(unittest.TestCase):
                 "name": "Pattern Check",
                 "type": "pattern",
                 "config": {"pattern": r"test", "match_required": False},
-            }
+            },
         ]
         guard = BusinessRulesGuard(rules=rules, require_all=True)
         ctx = Context()
@@ -436,12 +431,14 @@ class TestBusinessRulesGuard(unittest.TestCase):
         """Test that failure reasons are properly truncated."""
         rules = []
         for i in range(10):  # Create many failing rules
-            rules.append({
-                "id": f"rule_{i}",
-                "name": f"Rule {i}",
-                "type": "length",
-                "config": {"min_length": 100},  # Will fail for short text
-            })
+            rules.append(
+                {
+                    "id": f"rule_{i}",
+                    "name": f"Rule {i}",
+                    "type": "length",
+                    "config": {"min_length": 100},  # Will fail for short text
+                }
+            )
 
         guard = BusinessRulesGuard(rules=rules, require_all=True)
         ctx = Context()
