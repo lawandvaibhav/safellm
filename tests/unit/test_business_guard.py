@@ -38,12 +38,12 @@ class TestBusinessRulesGuard(unittest.TestCase):
                 "config": {"min_length": 5, "max_length": 100},
             }
         ]
-        
+
         # Test block action (default)
         guard = BusinessRulesGuard(rules=rules, action="block", require_all=True)
         self.assertEqual(guard.action, "block")
         self.assertTrue(guard.require_all)
-        
+
         # Test transform action
         guard = BusinessRulesGuard(rules=rules, action="transform")
         self.assertEqual(guard.action, "transform")
@@ -115,7 +115,7 @@ class TestBusinessRulesGuard(unittest.TestCase):
             {
                 "id": "short_length",
                 "name": "Short Length",
-                "type": "length", 
+                "type": "length",
                 "config": {"max_length": 2},  # This will fail
             },
             {
@@ -357,7 +357,7 @@ class TestBusinessRulesGuard(unittest.TestCase):
                 "config": {"min_length": 5, "max_length": 20},
             },
             {
-                "id": "pattern_check", 
+                "id": "pattern_check",
                 "name": "Pattern Check",
                 "type": "pattern",
                 "config": {"pattern": r"test", "match_required": False},
@@ -367,7 +367,7 @@ class TestBusinessRulesGuard(unittest.TestCase):
         ctx = Context()
 
         result = guard.check("Hello World", ctx)
-        
+
         # Check evidence structure
         evidence = result.evidence
         self.assertIn("rules_evaluated", evidence)
@@ -378,7 +378,7 @@ class TestBusinessRulesGuard(unittest.TestCase):
         self.assertIn("rule_results", evidence)
         self.assertIn("passed_rule_ids", evidence)
         self.assertIn("failed_rule_ids", evidence)
-        
+
         self.assertEqual(evidence["rules_evaluated"], 2)
         self.assertTrue(evidence["require_all_rules"])
 
@@ -402,7 +402,7 @@ class TestBusinessRulesGuard(unittest.TestCase):
         # Test with dict
         result = guard.check({"a": "b"}, ctx)  # str() gives "{'a': 'b'}" which is 10 chars
         self.assertEqual(result.action, "allow")  # Length > 2, so passes
-        
+
         # Test with short input that should fail
         result = guard.check("a", ctx)  # Length 1 < min_length 2
         self.assertEqual(result.action, "deny")
@@ -442,18 +442,18 @@ class TestBusinessRulesGuard(unittest.TestCase):
                 "type": "length",
                 "config": {"min_length": 100},  # Will fail for short text
             })
-        
+
         guard = BusinessRulesGuard(rules=rules, require_all=True)
         ctx = Context()
 
         result = guard.check("short", ctx)
         self.assertEqual(result.action, "deny")
-        
+
         # Check that reasons are truncated
         reasons = result.reasons
         failed_rule_reasons = [r for r in reasons if r.startswith("Failed:")]
         self.assertLessEqual(len(failed_rule_reasons), 3)
-        
+
         # Should have "... and X more" message
         more_message = [r for r in reasons if "and" in r and "more" in r]
         if len(rules) > 3:
